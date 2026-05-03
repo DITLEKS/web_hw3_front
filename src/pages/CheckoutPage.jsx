@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { DELIVERY_OPTIONS, PAYMENT_OPTIONS } from '../data/mock'
+import { ordersApi } from '../api/client'
+import { getSessionId } from '../utils/session'
 import styles from './CheckoutPage.module.css'
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || !import.meta.env.VITE_ORDERS_API_URL
 
 const INITIAL_FORM = {
   first_name: '', last_name: '', phone: '', email: '',
@@ -18,8 +22,8 @@ export default function CheckoutPage() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState(null)
 
-  // Редирект если корзина пуста
   if (items.length === 0) {
     return (
       <main className={`container ${styles.empty}`}>
@@ -29,7 +33,7 @@ export default function CheckoutPage() {
     )
   }
 
-  const delivery = DELIVERY_OPTIONS.find(d => d.value === form.delivery_type)
+  const delivery = DELIVERY_OPTIONS.find(d => d.value === form.delivery_type) ?? DELIVERY_OPTIONS[0]
   const total = subtotal - discount + delivery.price
 
   const handleChange = (e) => {
@@ -51,35 +55,65 @@ export default function CheckoutPage() {
     return errs
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
 
     setLoading(true)
+    setApiError(null)
 
-    // Имитируем запрос к API
-    const orderNumber = `LX-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`
+    try {
+      let orderNumber, orderTotal, orderDelivery, orderPayment
 
-    setTimeout(() => {
+      if (USE_MOCK) {
+        // Mock: генерируем номер заказа локально
+        await new Promise(r => setTimeout(r, 1200))
+        orderNumber  = `LX-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`
+        orderTotal   = total
+        orderDelivery= delivery.label
+        orderPayment = PAYMENT_OPTIONS.find(p => p.value === form.payment_method)?.label
+      } else {
+        // Real API: POST /api/v1/orders
+        const sessionId = getSessionId()
+        const payload = {
+          delivery_type:   form.delivery_type,
+          delivery_city:   form.delivery_type !== 'pickup' ? form.city : undefined,
+          delivery_street: form.delivery_type !== 'pickup' ? form.street : undefined,
+          delivery_zip:    form.zip || undefined,
+          payment_method:  form.payment_method,
+          promo_code:      promo?.code || undefined,
+        }
+        const res = await ordersApi.createOrder(sessionId, payload)
+        const d = res.data
+        orderNumber  = d.order_number
+        orderTotal   = parseFloat(d.total_amount)
+        orderDelivery= delivery.label
+        orderPayment = PAYMENT_OPTIONS.find(p => p.value === form.payment_method)?.label
+      }
+
       clearCart()
       navigate('/order-success', {
         state: {
           orderNumber,
-          total,
-          delivery: delivery.label,
-          payment: PAYMENT_OPTIONS.find(p => p.value === form.payment_method)?.label,
+          total: orderTotal,
+          delivery: orderDelivery,
+          payment: orderPayment,
           email: form.email,
         },
       })
-    }, 1200)
+    } catch (err) {
+      setApiError(err.message || 'Не удалось оформить заказ. Попробуйте ещё раз.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <main className={styles.page}>
       <div className="container">
 
-        <nav className={`${styles.breadcrumb} anim-fade-in`}>
+        <nav className={`${styles.breadcrumb} anim-fade-in`} aria-label="Навигация">
           <Link to="/">Каталог</Link><span>/</span>
           <Link to="/cart">Корзина</Link><span>/</span>
           <span>Оформление</span>
@@ -87,9 +121,15 @@ export default function CheckoutPage() {
 
         <h1 className={`${styles.title} anim-fade-up`}>Оформление заказа</h1>
 
+        {apiError && (
+          <div className={styles.apiError} role="alert">
+            ⚠️ {apiError}
+          </div>
+        )}
+
         <form className={styles.layout} onSubmit={handleSubmit} noValidate>
 
-          {/* ── Левая колонка — форма ── */}
+          {/* Левая колонка — форма */}
           <div className={styles.formSection}>
 
             {/* Покупатель */}
@@ -97,23 +137,25 @@ export default function CheckoutPage() {
               <div className={styles.grid2}>
                 <Field label="Имя" error={errors.first_name}>
                   <input className={`input ${errors.first_name ? styles.errInput : ''}`}
-                    name="first_name" placeholder="Иван" value={form.first_name} onChange={handleChange} />
+                    name="first_name" placeholder="Иван" value={form.first_name} onChange={handleChange}
+                    autoComplete="given-name" />
                 </Field>
                 <Field label="Фамилия" error={errors.last_name}>
                   <input className={`input ${errors.last_name ? styles.errInput : ''}`}
-                    name="last_name" placeholder="Иванов" value={form.last_name} onChange={handleChange} />
+                    name="last_name" placeholder="Иванов" value={form.last_name} onChange={handleChange}
+                    autoComplete="family-name" />
                 </Field>
               </div>
               <div className={styles.grid2}>
                 <Field label="Телефон" error={errors.phone}>
                   <input className={`input ${errors.phone ? styles.errInput : ''}`}
                     name="phone" type="tel" placeholder="+7 (___) ___-__-__"
-                    value={form.phone} onChange={handleChange} />
+                    value={form.phone} onChange={handleChange} autoComplete="tel" />
                 </Field>
                 <Field label="E-mail" error={errors.email}>
                   <input className={`input ${errors.email ? styles.errInput : ''}`}
                     name="email" type="email" placeholder="ivan@example.com"
-                    value={form.email} onChange={handleChange} />
+                    value={form.email} onChange={handleChange} autoComplete="email" />
                 </Field>
               </div>
             </Section>
@@ -149,16 +191,19 @@ export default function CheckoutPage() {
                 <div className={styles.addressFields}>
                   <Field label="Город" error={errors.city}>
                     <input className={`input ${errors.city ? styles.errInput : ''}`}
-                      name="city" placeholder="Москва" value={form.city} onChange={handleChange} />
+                      name="city" placeholder="Москва" value={form.city} onChange={handleChange}
+                      autoComplete="address-level2" />
                   </Field>
                   <Field label="Улица, дом, квартира" error={errors.street}>
                     <input className={`input ${errors.street ? styles.errInput : ''}`}
                       name="street" placeholder="ул. Ленина, д. 1, кв. 42"
-                      value={form.street} onChange={handleChange} />
+                      value={form.street} onChange={handleChange}
+                      autoComplete="street-address" />
                   </Field>
                   <Field label="Почтовый индекс">
                     <input className="input" name="zip" placeholder="101000"
-                      value={form.zip} onChange={handleChange} maxLength={6} />
+                      value={form.zip} onChange={handleChange} maxLength={6}
+                      autoComplete="postal-code" />
                   </Field>
                 </div>
               )}
@@ -204,7 +249,7 @@ export default function CheckoutPage() {
 
           </div>
 
-          {/* ── Правая колонка — итог ── */}
+          {/* Правая колонка — итог */}
           <aside className={`${styles.orderSummary} anim-fade-up delay-2`}>
             <h2 className={styles.summaryTitle}>Ваш заказ</h2>
 
@@ -248,15 +293,13 @@ export default function CheckoutPage() {
               disabled={loading}
             >
               {loading ? (
-                <span className={styles.spinner} />
+                <span className={styles.spinner} aria-hidden />
               ) : (
-                'Подтвердить заказ'
+                'Подтвердить заказ →'
               )}
             </button>
 
-            <p className={styles.agree}>
-              Нажимая кнопку, вы соглашаетесь с условиями обработки персональных данных
-            </p>
+            <Link to="/cart" className={styles.back}>← Вернуться в корзину</Link>
           </aside>
 
         </form>
@@ -271,7 +314,7 @@ function Section({ title, step, optional, children }) {
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <span className={styles.step}>{step}</span>
+        <span className={styles.stepBadge}>{step}</span>
         <h2 className={styles.sectionTitle}>{title}</h2>
         {optional && <span className={styles.optional}>необязательно</span>}
       </div>
@@ -285,7 +328,7 @@ function Field({ label, error, children }) {
     <div className="field">
       <label>{label}</label>
       {children}
-      {error && <span className={styles.errMsg}>{error}</span>}
+      {error && <span className={styles.errMsg} role="alert">{error}</span>}
     </div>
   )
 }

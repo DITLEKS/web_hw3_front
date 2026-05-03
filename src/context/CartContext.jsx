@@ -3,8 +3,7 @@ import { PROMO_CODES } from '../data/mock'
 
 const CartContext = createContext(null)
 
-// ── Редьюсер ──────────────────────────────────────────────────────── //
-
+// Редьюсер  
 function cartReducer(state, action) {
   switch (action.type) {
 
@@ -25,13 +24,14 @@ function cartReducer(state, action) {
         items: [
           ...state.items,
           {
-            id:          Date.now(),
-            sku:         action.product.sku,
-            name:        action.product.name,
-            price:       action.product.price,
-            image:       action.product.primary_image,
-            quantity:    action.qty,
-            stock:       action.product.stock_quantity,
+            id:       Date.now(),
+            sku:      action.product.sku,
+            name:     action.product.name,
+            // price может прийти как строка из бекенда ("89.00") или число из mock (89)
+            price:    parseFloat(action.product.price),
+            image:    action.product.primary_image,
+            quantity: action.qty,
+            stock:    action.product.stock_quantity,
           },
         ],
       }
@@ -57,7 +57,6 @@ function cartReducer(state, action) {
       const promo = PROMO_CODES[code]
       if (!promo) return { ...state, promoError: 'Промокод не найден' }
 
-      // Считаем subtotal без скидки
       const subtotal = state.items.reduce((s, i) => s + i.price * i.quantity, 0)
       if (subtotal < promo.min) {
         return {
@@ -81,12 +80,11 @@ function cartReducer(state, action) {
 
 const initialState = { items: [], promo: null, promoError: null }
 
-// ── Провайдер ─────────────────────────────────────────────────────── //
+// Провайдер
 
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState)
 
-  // Вычисляемые значения
   const itemCount = state.items.reduce((s, i) => s + i.quantity, 0)
   const subtotal  = state.items.reduce((s, i) => s + i.price * i.quantity, 0)
 
@@ -96,12 +94,12 @@ export function CartProvider({ children }) {
     return Math.min(state.promo.value, subtotal)
   })()
 
-  const addItem    = useCallback((product, qty = 1) => dispatch({ type: 'ADD',    product, qty }), [])
-  const updateItem = useCallback((sku, qty)          => dispatch({ type: 'UPDATE', sku, qty }),    [])
-  const removeItem = useCallback((sku)               => dispatch({ type: 'REMOVE', sku }),         [])
-  const applyPromo = useCallback((code)              => dispatch({ type: 'APPLY_PROMO', code }),   [])
-  const removePromo= useCallback(()                  => dispatch({ type: 'REMOVE_PROMO' }),        [])
-  const clearCart  = useCallback(()                  => dispatch({ type: 'CLEAR' }),               [])
+  const addItem    = useCallback((product, qty = 1) => dispatch({ type: 'ADD',          product, qty }), [])
+  const updateItem = useCallback((sku, qty)          => dispatch({ type: 'UPDATE',       sku, qty }),    [])
+  const removeItem = useCallback((sku)               => dispatch({ type: 'REMOVE',       sku }),         [])
+  const applyPromo = useCallback((code)              => dispatch({ type: 'APPLY_PROMO',  code }),        [])
+  const removePromo= useCallback(()                  => dispatch({ type: 'REMOVE_PROMO' }),              [])
+  const clearCart  = useCallback(()                  => dispatch({ type: 'CLEAR' }),                     [])
 
   return (
     <CartContext.Provider value={{
@@ -125,6 +123,6 @@ export function CartProvider({ children }) {
 
 export function useCart() {
   const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used inside CartProvider')
+  if (!ctx) throw new Error('useCart must be used inside <CartProvider>')
   return ctx
 }
