@@ -1,6 +1,5 @@
 # SmartLight — Frontend (React)
-
-Пользовательская часть интернет-магазина SmartLight на **React 18 + React Router 6 + Vite**.
+Фронтенд часть интернет-магазина SmartLight на **React 18 + React Router 6 + Vite**.
 
 ## Страницы
 
