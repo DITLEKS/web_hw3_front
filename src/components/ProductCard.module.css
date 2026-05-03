@@ -1,0 +1,140 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  text-decoration: none;
+  transition: box-shadow var(--t-med), transform var(--t-med), border-color var(--t-med);
+  animation: fadeUp var(--t-slow) both;
+}
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-4px);
+  border-color: transparent;
+}
+
+/* Изображение */
+.imageWrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--c-bg);
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--t-slow);
+}
+.card:hover .image { transform: scale(1.04); }
+
+.outOfStock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250,249,245,.75);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-3);
+  backdrop-filter: blur(2px);
+}
+
+.saleBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+/* Тело карточки */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  flex: 1;
+}
+
+.category {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+
+.name {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  line-height: 1.35;
+  flex: 1;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.priceBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.oldPrice {
+  font-size: 13px;
+  color: var(--c-text-3);
+  text-decoration: line-through;
+}
+
+/* Кнопка добавить */
+.addBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-accent-lt);
+  color: var(--c-accent);
+  border: 1.5px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--t-fast);
+}
+.addBtn:hover {
+  background: var(--c-accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(212,136,10,.4);
+}
+.addBtn.inCart {
+  background: #E6F4ED;
+  color: var(--c-success);
+  border-color: #C3E6D0;
+}
+.addBtn.disabled {
+  background: var(--c-border);
+  color: var(--c-text-3);
+  cursor: not-allowed;
+}

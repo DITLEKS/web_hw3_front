@@ -1,0 +1,90 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(250,249,245,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 64px;
+}
+
+/* Логотип */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 20px;
+  color: var(--c-accent);
+  line-height: 1;
+}
+
+.logoText {
+  font-family: var(--f-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -.01em;
+}
+
+/* Навигация */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.navLink {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  transition: all var(--t-fast);
+}
+.navLink:hover { color: var(--c-text); background: var(--c-border); }
+.navLink.active { color: var(--c-accent); background: var(--c-accent-lt); }
+
+/* Кнопка корзины */
+.cartBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--t-fast);
+  position: relative;
+  flex-shrink: 0;
+}
+.cartBtn:hover {
+  background: var(--c-border);
+  color: var(--c-accent);
+}
+
+.cartLabel {
+  display: none;
+}
+
+.cartBadge {
+  font-size: 10px;
+  min-width: 18px;
+  height: 18px;
+}
+
+@media (min-width: 480px) {
+  .cartLabel { display: inline; }
+}
