@@ -1,97 +1,261 @@
-import { useState } from 'react'
-import { useProducts, useCategories } from '../hooks/useProducts'
-import { PRODUCTS } from '../data/mock'
-import ProductCard from '../components/ProductCard'
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { CATEGORIES, PRODUCTS } from '../data/mock'
+import { useCart } from '../context/CartContext'
 import styles from './CatalogPage.module.css'
 
+const CAT_COLORS = {
+  led: '#3B82F6', filament: '#F59E0B', smart: '#10B981',
+  halogen: '#EF4444', grow: '#22C55E', uv: '#8B5CF6',
+}
+
+const SORT_OPTIONS = [
+  { value: 'popular',    label: 'По популярности' },
+  { value: 'price_asc',  label: 'Цена ↑' },
+  { value: 'price_desc', label: 'Цена ↓' },
+  { value: 'name',       label: 'По названию' },
+]
+
+const ALL_SOCKETS = [...new Set(
+  PRODUCTS.flatMap(p => p.attributes.filter(a => a.attr_key === 'socket').map(a => a.attr_value))
+)].sort()
+
+const MAX_WATT  = Math.max(...PRODUCTS.map(p => parseFloat(p.attributes.find(a => a.attr_key === 'wattage')?.attr_value || 0)))
+const MAX_PRICE = Math.max(...PRODUCTS.map(p => parseFloat(p.price)))
+
+function plural(n) {
+  if (n % 100 >= 11 && n % 100 <= 19) return 'товаров'
+  if (n % 10 === 1) return 'товар'
+  if (n % 10 >= 2 && n % 10 <= 4) return 'товара'
+  return 'товаров'
+}
+
 export default function CatalogPage() {
-  const [activeCategory, setActiveCategory] = useState(null)
-  const { categories } = useCategories()
-  const { products, loading, error } = useProducts(activeCategory)
+  const [cats, setCats]         = useState([])
+  const [sockets, setSockets]   = useState([])
+  const [maxWatt, setMaxWatt]   = useState(MAX_WATT)
+  const [maxPrice, setMaxPrice] = useState(MAX_PRICE)
+  const [inStock, setInStock]   = useState(false)
+  const [sort, setSort]         = useState('popular')
+
+  const toggle = (arr, setArr, v) =>
+    setArr(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
+
+  const reset = () => {
+    setCats([]); setSockets([]); setMaxWatt(MAX_WATT); setMaxPrice(MAX_PRICE); setInStock(false)
+  }
+
+  const filtered = useMemo(() => {
+    let list = PRODUCTS.filter(p => p.status !== 'archived')
+    if (cats.length)    list = list.filter(p => cats.includes(p.category.slug))
+    if (sockets.length) list = list.filter(p => {
+      const s = p.attributes.find(a => a.attr_key === 'socket')
+      return s && sockets.includes(s.attr_value)
+    })
+    list = list.filter(p => {
+      const w = p.attributes.find(a => a.attr_key === 'wattage')
+      return !w || parseFloat(w.attr_value) <= maxWatt
+    })
+    list = list.filter(p => parseFloat(p.price) <= maxPrice)
+    if (inStock) list = list.filter(p => p.stock_quantity > 0)
+    switch (sort) {
+      case 'price_asc':  return [...list].sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+      case 'price_desc': return [...list].sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+      case 'name':       return [...list].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+      default:           return list
+    }
+  }, [cats, sockets, maxWatt, maxPrice, inStock, sort])
+
+  const activeCount = cats.length + sockets.length +
+    (maxWatt < MAX_WATT ? 1 : 0) + (maxPrice < MAX_PRICE ? 1 : 0) + (inStock ? 1 : 0)
 
   return (
     <main className={styles.page}>
+      <div className="container">
 
-      {/* Шапка каталога */}
-      <section className={`container ${styles.hero}`}>
-        <p className={`${styles.heroLabel} anim-fade-in`}>Интернет-магазин</p>
-        <h1 className={`${styles.heroTitle} anim-fade-up delay-1`}>
-          Лампы для<br />любого пространства
-        </h1>
-        <p className={`${styles.heroSub} anim-fade-up delay-2`}>
-          LED, филаментные, умные и галогенные лампы с доставкой по всей России
-        </p>
-      </section>
+        <nav className={styles.breadcrumb}>
+          <Link to="/">Главная</Link>
+          <span>/</span>
+          <span>Каталог</span>
+        </nav>
 
-      {/* Фильтры по категориям */}
-      <div className={`container ${styles.filterWrap}`}>
-        <div className={styles.filters}>
-          <button
-            className={`${styles.filterBtn} ${!activeCategory ? styles.active : ''}`}
-            onClick={() => setActiveCategory(null)}
-          >
-            Все товары
-            <span className={styles.filterCount}>{PRODUCTS.length}</span>
-          </button>
+        <h1 className={styles.pageTitle}>Каталог ламп</h1>
 
-          {categories.map(cat => {
-            const count = PRODUCTS.filter(p => p.category.slug === cat.slug).length
-            return (
-              <button
-                key={cat.slug}
-                className={`${styles.filterBtn} ${activeCategory === cat.slug ? styles.active : ''}`}
-                onClick={() => setActiveCategory(cat.slug)}
-                style={{ '--cat-color': cat.color }}
-              >
-                <span className={styles.filterDot} style={{ background: cat.color }} />
-                {cat.name}
-                <span className={styles.filterCount}>{count}</span>
+        <div className={styles.layout}>
+
+          {/* Сайдбар с фильтрами */}
+          <aside className={styles.sidebar}>
+
+            <FilterSection title="Тип лампы">
+              {CATEGORIES.map(c => (
+                <CheckRow
+                  key={c.slug}
+                  checked={cats.includes(c.slug)}
+                  onChange={() => toggle(cats, setCats, c.slug)}
+                  label={c.name}
+                  dot={CAT_COLORS[c.slug] || c.color}
+                />
+              ))}
+            </FilterSection>
+
+            <FilterSection title="Цоколь">
+              {ALL_SOCKETS.map(s => (
+                <CheckRow
+                  key={s}
+                  checked={sockets.includes(s)}
+                  onChange={() => toggle(sockets, setSockets, s)}
+                  label={s}
+                />
+              ))}
+            </FilterSection>
+
+            <FilterSection title="Мощность (Вт)">
+              <input
+                type="range" min={1} max={MAX_WATT} value={maxWatt}
+                onChange={e => setMaxWatt(Number(e.target.value))}
+                className={styles.range}
+              />
+              <div className={styles.rangeLabels}>
+                <span>1 Вт</span>
+                <span>{maxWatt} Вт</span>
+              </div>
+            </FilterSection>
+
+            <FilterSection title="Цена (₽)">
+              <input
+                type="range" min={0} max={MAX_PRICE} value={maxPrice}
+                onChange={e => setMaxPrice(Number(e.target.value))}
+                className={styles.range}
+              />
+              <div className={styles.rangeLabels}>
+                <span>0 ₽</span>
+                <span>{maxPrice} ₽</span>
+              </div>
+            </FilterSection>
+
+            <label className={`${styles.checkRow} ${styles.inStockRow}`}>
+              <input type="checkbox" checked={inStock} onChange={e => setInStock(e.target.checked)}/>
+              Только в наличии
+            </label>
+
+            {activeCount > 0 && (
+              <button className={styles.resetBtn} onClick={reset}>
+                Сбросить ({activeCount})
               </button>
-            )
-          })}
+            )}
+          </aside>
+
+          {/* Список товаров */}
+          <div className={styles.content}>
+            <div className={styles.topBar}>
+              <span className={styles.found}>
+                Найдено: {filtered.length} {plural(filtered.length)}
+              </span>
+              <select
+                className={`input ${styles.sortSelect}`}
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+              >
+                {SORT_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className={styles.empty}>
+                <span>🔍</span>
+                <p>Товаров не найдено</p>
+                <button className="btn btn-outline" onClick={reset}>Сбросить фильтры</button>
+              </div>
+            ) : (
+              <div className={styles.grid} aria-live="polite">
+                {filtered.map((p, i) => (
+                  <CatalogCard key={p.sku} product={p} animDelay={i * 40}/>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Описание категории */}
-      {activeCategory && (
-        <div className={`container ${styles.catDesc}`}>
-          <p>{categories.find(c => c.slug === activeCategory)?.description}</p>
-        </div>
-      )}
-
-      {/* Сетка товаров */}
-      <section className={`container ${styles.grid}`} aria-live="polite">
-        {loading && (
-          <div className={styles.skeleton}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className={styles.skeletonCard} />
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <div className={styles.empty}>
-            <span>⚠️</span>
-            <p>Не удалось загрузить товары: {error}</p>
-          </div>
-        )}
-
-        {!loading && !error && products.length === 0 && (
-          <div className={styles.empty}>
-            <span>🔍</span>
-            <p>Товаров не найдено</p>
-          </div>
-        )}
-
-        {!loading && !error && products.map((product, idx) => (
-          <ProductCard
-            key={product.sku}
-            product={product}
-            animDelay={idx * 50}
-          />
-        ))}
-      </section>
-
     </main>
+  )
+}
+
+/* Вспомогательные компоненты */
+
+function FilterSection({ title, children }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div className={styles.filterSection}>
+      <button className={styles.filterTitle} onClick={() => setOpen(o => !o)}>
+        {title}
+        <span className={`${styles.arrow} ${open ? styles.arrowOpen : ''}`}>▾</span>
+      </button>
+      {open && <div className={styles.filterBody}>{children}</div>}
+    </div>
+  )
+}
+
+function CheckRow({ checked, onChange, label, dot }) {
+  return (
+    <label className={styles.checkRow}>
+      <input type="checkbox" checked={checked} onChange={onChange}/>
+      {dot && <span className={styles.dot} style={{ background: dot }}/>}
+      {label}
+    </label>
+  )
+}
+
+function CatalogCard({ product, animDelay }) {
+  const { items, addItem } = useCart()
+  const inCart     = items.some(i => i.sku === product.sku)
+  const price      = parseFloat(product.price)
+  const oldPrice   = product.old_price ? parseFloat(product.old_price) : null
+  const outOfStock = product.status === 'out_of_stock' || product.stock_quantity === 0
+  const catColor   = CAT_COLORS[product.category.slug] || '#888'
+
+  const handleAdd = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!outOfStock) addItem(product, 1)
+  }
+
+  return (
+    <Link
+      to={`/products/${product.sku}`}
+      className={styles.card}
+      style={{ animationDelay: `${animDelay}ms` }}
+    >
+      <div className={styles.cardImg}>
+        <img src={product.primary_image} alt={product.name} loading="lazy"/>
+        <span className={styles.catBadge} style={{ background: catColor }}>
+          {product.category.name}
+        </span>
+      </div>
+      <div className={styles.cardBody}>
+        <p className={styles.cardSku}>{product.sku}</p>
+        <p className={styles.cardName}>{product.name}</p>
+        <div className={styles.cardMeta}>
+          <div>
+            <strong className={styles.cardPrice}>{price} ₽</strong>
+            {oldPrice && <s className={styles.cardOld}>{oldPrice} ₽</s>}
+          </div>
+          <span
+            className={styles.cardStock}
+            style={{ color: outOfStock ? '#EF4444' : '#10B981' }}
+          >
+            {outOfStock ? '0 в наличии' : `${product.stock_quantity} в наличии`}
+          </span>
+        </div>
+        <button
+          className={`${styles.addBtn} ${inCart ? styles.inCart : ''}`}
+          onClick={handleAdd}
+          disabled={outOfStock}
+        >
+          {inCart ? '✓ В корзине' : 'В корзину'}
+        </button>
+      </div>
+    </Link>
   )
 }

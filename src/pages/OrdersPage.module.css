@@ -1,0 +1,75 @@
+.page { padding: 20px 0 80px; }
+
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #a0998a; margin-bottom: 12px;
+}
+.breadcrumb a { color: #6b6459; text-decoration: none; }
+.breadcrumb a:hover { color: var(--c-accent); }
+
+.title {
+  font-size: clamp(22px, 3vw, 30px); font-weight: 600;
+  color: var(--c-text); margin-bottom: 24px;
+}
+
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 80px 20px; text-align: center;
+  color: #a0998a; font-size: 15px;
+}
+.emptyIcon { font-size: 48px; }
+
+.list { display: flex; flex-direction: column; gap: 14px; }
+
+.card {
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: 10px; overflow: hidden;
+}
+
+.cardHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--c-border);
+  flex-wrap: wrap; gap: 8px;
+}
+.cardMeta { display: flex; align-items: baseline; gap: 10px; }
+.orderId { font-size: 14px; font-weight: 600; color: var(--c-text); }
+.orderDate { font-size: 12px; color: #a0998a; }
+
+.statusBadge {
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+}
+
+.items { padding: 8px 18px; }
+
+.item {
+  display: flex; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--c-border);
+  gap: 12px;
+}
+.item:last-child { border-bottom: none; }
+
+.itemName { flex: 1; font-size: 13px; color: var(--c-text); }
+.itemQty  { font-size: 12px; color: #a0998a; white-space: nowrap; }
+.itemPrice { font-size: 13px; font-weight: 600; color: var(--c-text); white-space: nowrap; min-width: 60px; text-align: right; }
+
+.cardFooter {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-top: 1px solid var(--c-border);
+  background: var(--c-bg); flex-wrap: wrap; gap: 10px;
+}
+.total { font-size: 13px; color: var(--c-text-2); }
+.total strong { font-size: 15px; color: var(--c-text); margin-left: 4px; }
+
+.repeatBtn {
+  font-size: 12px; font-weight: 600; color: var(--c-accent);
+  text-decoration: none; padding: 6px 14px;
+  border: 1.5px solid var(--c-accent); border-radius: 6px;
+  transition: background 0.15s;
+}
+.repeatBtn:hover { background: rgba(212,154,0,.08); }
+
+@media (max-width: 540px) {
+  .item { flex-wrap: wrap; }
+  .itemName { width: 100%; }
+}

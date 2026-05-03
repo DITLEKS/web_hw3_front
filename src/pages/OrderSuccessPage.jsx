@@ -9,12 +9,17 @@ export default function OrderSuccessPage() {
     return (
       <main className={`container ${styles.center}`}>
         <h2>Страница не найдена</h2>
-        <Link to="/" className="btn btn-primary">В каталог</Link>
+        <Link to="/catalog" className="btn btn-primary">В каталог</Link>
       </main>
     )
   }
 
-  const { orderNumber, total, delivery, payment, email } = state
+  const { orderNumber, total, delivery, payment, email, address, items } = state
+
+  const deliveryDate = new Date()
+  deliveryDate.setDate(deliveryDate.getDate() + 7)
+  const deliveryDateStr = deliveryDate.toLocaleDateString('ru-RU',
+    { day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
     <main className={styles.page}>
@@ -41,31 +46,50 @@ export default function OrderSuccessPage() {
 
         {/* Карточка с деталями */}
         <div className={`${styles.card} anim-fade-up delay-3`}>
+
           <div className={styles.orderNumRow}>
             <span className={styles.orderNumLabel}>Номер заказа</span>
             <span className={styles.orderNum}>{orderNumber}</span>
           </div>
 
-          <div className={styles.details}>
-            <div className={styles.detailRow}>
-              <span className={styles.detailKey}>Итоговая сумма</span>
-              <span className={styles.detailVal}>{total} ₽</span>
+          {/* Список товаров */}
+          {items?.length > 0 && (
+            <div className={styles.itemsList}>
+              <div className={styles.detailsTitle}>Детали заказа</div>
+              {items.map((item, i) => (
+                <div key={i} className={styles.orderItem}>
+                  <span className={styles.orderItemName}>{item.name}</span>
+                  <span className={styles.orderItemMeta}>{item.qty} шт. × {item.price} ₽</span>
+                  <span className={styles.orderItemTotal}>{item.qty * item.price} ₽</span>
+                </div>
+              ))}
+              <div className={styles.orderTotal}>
+                <span>Итого</span>
+                <strong>{total} ₽</strong>
+              </div>
             </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailKey}>Доставка</span>
-              <span className={styles.detailVal}>{delivery}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailKey}>Оплата</span>
-              <span className={styles.detailVal}>{payment}</span>
+          )}
+
+          {/* Адрес и дата */}
+          <div className={styles.deliveryInfo}>
+            {address && (
+              <div className={styles.deliveryRow}>
+                <span className={styles.deliveryIcon}>📍</span>
+                <div>
+                  <div className={styles.deliveryLabel}>Адрес доставки</div>
+                  <div className={styles.deliveryVal}>{address}</div>
+                </div>
+              </div>
+            )}
+            <div className={styles.deliveryRow}>
+              <span className={styles.deliveryIcon}>📅</span>
+              <div>
+                <div className={styles.deliveryLabel}>Ожидаемая дата доставки</div>
+                <div className={styles.deliveryVal}>{deliveryDateStr}</div>
+              </div>
             </div>
           </div>
 
-          {email && (
-            <p className={styles.emailNote}>
-              Подтверждение заказа отправлено на <strong>{email}</strong>
-            </p>
-          )}
         </div>
 
         {/* Статусы */}
@@ -83,9 +107,8 @@ export default function OrderSuccessPage() {
 
         {/* Кнопки */}
         <div className={`${styles.actions} anim-fade-up delay-5`}>
-          <Link to="/" className="btn btn-primary btn-lg">
-            Продолжить покупки
-          </Link>
+          <Link to="/orders" className="btn btn-outline btn-lg">Отследить заказ</Link>
+          <Link to="/catalog" className="btn btn-primary btn-lg">На главную</Link>
         </div>
 
       </div>

@@ -1,0 +1,93 @@
+/* Баннер */
+.bannerWrap { position: relative; height: 340px; overflow: hidden; }
+.bannerSlide {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: 0; transition: opacity .7s ease;
+}
+.bannerSlide.active { opacity: 1; }
+.bannerOverlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,.62) 0%, rgba(0,0,0,.18) 60%, transparent 100%);
+}
+.bannerContent {
+  position: relative; z-index: 1; height: 100%;
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  max-width: 520px;
+}
+.bannerTitle { font-size: clamp(22px,3.5vw,38px); font-weight: 700; color: #fff; line-height: 1.2; }
+.bannerSub { font-size: 14px; color: rgba(255,255,255,.85); max-width: 380px; line-height: 1.6; }
+.bannerBtn { align-self: flex-start; margin-top: 6px; }
+.dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 2; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.4); border: none; cursor: pointer; padding: 0; transition: background .2s, transform .2s; }
+.dot:hover { background: rgba(255,255,255,.7); }
+.dotActive { background: #fff !important; transform: scale(1.3); }
+
+/* Категории */
+.catsSection {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  padding-top: 28px; padding-bottom: 4px;
+}
+.catCard {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 18px 20px; border: 1px solid var(--c-border); border-radius: var(--r-lg);
+  background: var(--c-surface); text-decoration: none; flex: 1; min-width: 90px;
+  transition: all var(--t-med);
+}
+.catCard:hover { border-color: transparent; box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.catIcon {
+  width: 44px; height: 44px; border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+}
+.catIcon svg { width: 22px; height: 22px; }
+.catName { font-size: 12px; font-weight: 600; color: var(--c-text); }
+
+/* Популярные товары */
+.popularSection { padding-top: 36px; padding-bottom: 72px; }
+.sectionHeader { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+.sectionTitle { font-family: var(--f-display); font-size: 20px; font-weight: 600; color: var(--c-text); }
+.seeAll { font-size: 13px; color: var(--c-accent); font-weight: 500; transition: opacity var(--t-fast); }
+.seeAll:hover { opacity: .7; }
+.popularGrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+
+/* Карточка товара */
+.homeCard {
+  display: flex; flex-direction: column;
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-lg); overflow: hidden; text-decoration: none;
+  animation: fadeUp var(--t-slow) both;
+  transition: box-shadow var(--t-med), transform var(--t-med);
+}
+.homeCard:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.homeCardImg { position: relative; aspect-ratio: 4/3; background: #f5f5f0; overflow: hidden; }
+.homeCardImg img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--t-slow); }
+.homeCard:hover .homeCardImg img { transform: scale(1.04); }
+.catBadge {
+  position: absolute; top: 8px; left: 8px;
+  padding: 2px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; color: #fff; letter-spacing: .03em;
+}
+.homeCardBody { display: flex; flex-direction: column; gap: 5px; padding: 12px; }
+.homeCardSku { font-size: 10px; color: var(--c-text-3); font-family: monospace; }
+.homeCardName { font-size: 12px; font-weight: 500; color: var(--c-text); line-height: 1.4; min-height: 34px; }
+.homeCardRow { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; margin-top: 2px; }
+.homeCardPrice strong { font-size: 16px; font-weight: 700; color: var(--c-text); }
+.homeCardPrice s { font-size: 11px; color: var(--c-text-3); margin-left: 3px; }
+.stockLabel { font-size: 10px; font-weight: 500; white-space: nowrap; }
+.addBtn {
+  width: 100%; padding: 9px; background: var(--c-accent); color: #fff;
+  border: none; border-radius: var(--r-md); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background var(--t-fast); margin-top: 6px;
+}
+.addBtn:hover { background: var(--c-accent-dk); }
+.addBtn:disabled { background: var(--c-border); color: var(--c-text-3); cursor: not-allowed; }
+.inCartBtn { background: #2D7A4F; }
+.inCartBtn:hover { background: #1f5c37; }
+
+@media (max-width: 900px) { .popularGrid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px) {
+  .bannerWrap { height: 260px; }
+  .popularGrid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .catsSection { gap: 8px; }
+  .catCard { padding: 12px 10px; min-width: 72px; }
+}

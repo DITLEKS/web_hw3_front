@@ -20,7 +20,7 @@ export default function CartPage() {
           <div className={styles.emptyIcon}>🛒</div>
           <h2 className={styles.emptyTitle}>Корзина пуста</h2>
           <p className={styles.emptySub}>Добавьте товары из каталога, чтобы оформить заказ</p>
-          <Link to="/" className="btn btn-primary btn-lg">Перейти в каталог</Link>
+          <Link to="/catalog" className="btn btn-primary btn-lg">Перейти в каталог</Link>
         </div>
       </main>
     )

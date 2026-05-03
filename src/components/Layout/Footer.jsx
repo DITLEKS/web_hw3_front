@@ -11,7 +11,7 @@ export default function Footer() {
           <p className={styles.tagline}>Освещение, которое меняет пространство</p>
         </div>
         <div className={styles.links}>
-          <Link to="/">Каталог</Link>
+          <Link to="/catalog">Каталог</Link>
           <Link to="/cart">Корзина</Link>
         </div>
         <p className={styles.copy}>© 2026 SmartLight. Все права защищены.</p>
