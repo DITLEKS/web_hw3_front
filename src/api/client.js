@@ -19,7 +19,7 @@ async function request(baseUrl, path, options = {}) {
   return res.json()
 }
 
-// ── Catalog API ──────────────────────────────────────────────────── //
+// API каталога
 
 export const catalogApi = {
   /**
@@ -50,7 +50,7 @@ export const catalogApi = {
   },
 }
 
-// ── Orders / Cart API ────────────────────────────────────────────── //
+// API заказов и корзины
 
 export const ordersApi = {
   /**
