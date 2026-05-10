@@ -46,7 +46,7 @@ export default function Header() {
               fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
-            <input type="search" placeholder="Поиск товаров..." className={styles.searchInput}
+            <input type="text" placeholder="Поиск товаров..." className={styles.searchInput}
               value={inputVal} onChange={e => setInputVal(e.target.value)} aria-label="Поиск товаров"/>
           </div>
         </form>

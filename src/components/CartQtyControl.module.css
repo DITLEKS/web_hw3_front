@@ -1,0 +1,75 @@
+/* ── Кнопка «В корзину» ───────────────────────────── */
+.btnAdd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--r-md, 8px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+  background: var(--c-accent, #D4930A);
+  color: #fff;
+  white-space: nowrap;
+}
+.btnAdd:hover  { background: var(--c-accent-dark, #b87d08); }
+.btnAdd:active { transform: scale(0.97); }
+
+.btnAdd.disabled {
+  background: var(--c-border, #ddd);
+  color: var(--c-text-3, #aaa);
+  cursor: not-allowed;
+}
+
+/* Размеры кнопки */
+.btnAdd.md { height: 42px; font-size: 14px; padding: 0 16px; }
+.btnAdd.sm { height: 34px; font-size: 13px; padding: 0 12px; }
+
+/* ── Степпер «− N +» ─────────────────────────────── */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--c-surface-2, #f0ede8);
+  border-radius: var(--r-md, 8px);
+  overflow: hidden;
+}
+
+.stepper.md { height: 42px; }
+.stepper.sm { height: 34px; }
+
+.stepBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--c-accent, #D4930A);
+  transition: background 0.15s;
+  height: 100%;
+}
+
+.stepper.md .stepBtn { width: 42px; }
+.stepper.sm .stepBtn { width: 34px; font-size: 17px; }
+
+.stepBtn:hover:not(:disabled)  { background: rgba(0,0,0,0.06); }
+.stepBtn:active:not(:disabled) { background: rgba(0,0,0,0.1); }
+.stepBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.stepVal {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text, #2c2618);
+  line-height: 1;
+  user-select: none;
+}
+
+.stepper.sm .stepVal { font-size: 13px; }

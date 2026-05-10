@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { addItem } from '../store/cartSlice'
 import styles from './OrdersPage.module.css'
 
-// Mock-данные заказов (после подключения бекенда — заменить на API-вызов)
 const MOCK_ORDERS = [
   {
     id: 'ORD-2025-001',
@@ -10,8 +11,8 @@ const MOCK_ORDERS = [
     statusLabel: 'Доставлен',
     total: 534,
     items: [
-      { name: 'Лампа светодиодная груша 9 Вт E27', qty: 2, price: 89 },
-      { name: 'Лампа филаментная винтажная 8 Вт E27', qty: 2, price: 180 },
+      { sku: 'LX-LED-E27-9W', name: 'Лампа светодиодная груша 9 Вт E27', qty: 2, price: 89 },
+      { sku: 'LX-FIL-E27-8W', name: 'Лампа филаментная винтажная 8 Вт E27', qty: 2, price: 180 },
     ],
   },
   {
@@ -21,7 +22,7 @@ const MOCK_ORDERS = [
     statusLabel: 'В обработке',
     total: 450,
     items: [
-      { name: 'Умная лампа Wi-Fi RGB 10 Вт E27', qty: 1, price: 450 },
+      { sku: 'LX-SMART-E27-10W', name: 'Умная лампа Wi-Fi RGB 10 Вт E27', qty: 1, price: 450 },
     ],
   },
 ]
@@ -34,6 +35,24 @@ const STATUS_COLOR = {
 }
 
 export default function OrdersPage() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const handleRepeat = (order) => {
+    order.items.forEach(item => {
+      const mockProduct = {
+        sku:           item.sku,
+        name:          item.name,
+        price:         String(item.price),
+        primary_image: '',
+        stock_quantity: 99,
+        status:        'active',
+      }
+      dispatch(addItem({ product: mockProduct, qty: item.qty }))
+    })
+    navigate('/cart')
+  }
+
   return (
     <main className={styles.page}>
       <div className="container">
@@ -63,10 +82,8 @@ export default function OrdersPage() {
                       <span className={styles.orderId}>Заказ {order.id}</span>
                       <span className={styles.orderDate}>от {order.date}</span>
                     </div>
-                    <span
-                      className={styles.statusBadge}
-                      style={{ background: sc.bg, color: sc.color }}
-                    >
+                    <span className={styles.statusBadge}
+                      style={{ background: sc.bg, color: sc.color }}>
                       {order.statusLabel}
                     </span>
                   </div>
@@ -85,9 +102,9 @@ export default function OrdersPage() {
                     <span className={styles.total}>
                       Итого: <strong>{order.total} ₽</strong>
                     </span>
-                    <Link to="/catalog" className={styles.repeatBtn}>
+                    <button className={styles.repeatBtn} onClick={() => handleRepeat(order)}>
                       Повторить заказ
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )

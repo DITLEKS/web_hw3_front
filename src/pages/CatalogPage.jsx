@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchProducts, fetchCategories, setQuery } from '../store/catalogSlice'
 import { addItem, selectCartItems } from '../store/cartSlice'
 import { PRODUCTS, CATEGORIES } from '../data/mock'
+import CartQtyControl from '../components/CartQtyControl'
 import styles from './CatalogPage.module.css'
 
 const CAT_COLORS = {
@@ -155,7 +156,7 @@ export default function CatalogPage() {
                   fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input className={styles.searchInput} type="search"
+                <input className={styles.searchInput} type="text"
                   placeholder="Поиск по названию или артикулу..."
                   value={localQuery} onChange={e => setLocalQuery(e.target.value)}
                   aria-label="Поиск товаров"/>
@@ -231,16 +232,10 @@ function CheckRow({ checked, onChange, label, dot }) {
 function CatalogCard({ product, animDelay }) {
   const dispatch  = useDispatch()
   const cartItems = useSelector(selectCartItems)
-  const inCart    = cartItems.some(i => i.sku === product.sku)
   const price     = parseFloat(product.price)
   const oldPrice  = product.old_price ? parseFloat(product.old_price) : null
   const outOfStock = product.status === 'out_of_stock' || product.stock_quantity === 0
   const catColor   = CAT_COLORS[product.category.slug] || '#888'
-
-  const handleAdd = (e) => {
-    e.preventDefault(); e.stopPropagation()
-    if (!outOfStock) dispatch(addItem({ product, qty: 1 }))
-  }
 
   return (
     <Link to={`/products/${product.sku}`} className={styles.card} style={{ animationDelay: `${animDelay}ms` }}>
@@ -260,10 +255,7 @@ function CatalogCard({ product, animDelay }) {
             {outOfStock ? '0 в наличии' : `${product.stock_quantity} в наличии`}
           </span>
         </div>
-        <button className={`${styles.addBtn} ${inCart ? styles.inCart : ''}`}
-          onClick={handleAdd} disabled={outOfStock}>
-          {inCart ? '✓ В корзине' : 'В корзину'}
-        </button>
+        <CartQtyControl product={product} outOfStock={outOfStock} size="md"/>
       </div>
     </Link>
   )

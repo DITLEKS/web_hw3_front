@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORIES, PRODUCTS } from '../data/mock'
 import { useDispatch, useSelector } from 'react-redux'
+import CartQtyControl from '../components/CartQtyControl'
 import { addItem, selectCartItems } from '../store/cartSlice'
 import styles from './HomePage.module.css'
 
@@ -116,11 +117,7 @@ function HomeCard({ product, animDelay }) {
             {outOfStock ? '0 в наличии' : `${product.stock_quantity} в наличии`}
           </span>
         </div>
-        <button className={`${styles.addBtn} ${inCart?styles.inCartBtn:''}`}
-          onClick={e=>{e.preventDefault();e.stopPropagation();if(!outOfStock)dispatchAdd(product)}}
-          disabled={outOfStock}>
-          {inCart ? '✓ В корзине' : 'В корзину'}
-        </button>
+        <CartQtyControl product={product} outOfStock={outOfStock} size="md"/>
       </div>
     </Link>
   )
