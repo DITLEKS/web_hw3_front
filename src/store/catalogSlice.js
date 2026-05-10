@@ -21,6 +21,7 @@ export const fetchProducts = createAsyncThunk(
       }
       const params = { limit: 100 }
       if (category) params.category = category
+      if (query)    params.query    = query   // передаём query в API
       const res = await catalogApi.getProducts(params)
       return Array.isArray(res.data) ? res.data : (res.data?.items ?? [])
     } catch (e) {

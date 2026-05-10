@@ -13,13 +13,11 @@ const CAT_COLORS = {
 }
 
 const SORT_OPTIONS = [
-  { value: 'popular',   label: 'По популярности' },
-  { value: 'price_asc', label: 'Цена ↑' },
-  { value: 'price_desc',label: 'Цена ↓' },
-  { value: 'name',      label: 'По названию' },
+  { value: 'popular',    label: 'По популярности' },
+  { value: 'price_asc',  label: 'Цена ↑' },
+  { value: 'price_desc', label: 'Цена ↓' },
+  { value: 'name',       label: 'По названию' },
 ]
-
-// Сокеты, MAX_WATT, MAX_PRICE считаются из данных Redux внутри компонента
 
 function plural(n) {
   if (n % 100 >= 11 && n % 100 <= 19) return 'товаров'
@@ -32,40 +30,63 @@ export default function CatalogPage() {
   const [searchParams] = useSearchParams()
   const dispatch       = useDispatch()
   const reduxProducts  = useSelector(s => s.catalog.products)
-  const ALL_SOCKETS = [...new Set(
-    reduxProducts.flatMap(p => (p.attributes || []).filter(a => a.attr_key === 'socket').map(a => a.attr_value))
-  )].sort()
-  const MAX_WATT  = Math.max(50, ...reduxProducts.map(p => parseFloat((p.attributes || []).find(a => a.attr_key === 'wattage')?.attr_value || 0)))
-  const MAX_PRICE = Math.max(100, ...reduxProducts.map(p => parseFloat(p.price || 0)))
   const reduxLoading   = useSelector(s => s.catalog.loading)
   const reduxQuery     = useSelector(s => s.catalog.query)
   const categories     = useSelector(s => s.catalog.categories.length ? s.catalog.categories : CATEGORIES)
 
-  const [cats,       setCats]       = useState(() => { const c = searchParams.get('category'); return c ? [c] : [] })
+  const ALL_SOCKETS = [...new Set(
+    reduxProducts.flatMap(p =>
+      (p.attributes || []).filter(a => a.attr_key === 'socket').map(a => a.attr_value)
+    )
+  )].sort()
+
+  const MAX_WATT  = Math.max(50,  ...reduxProducts.map(p =>
+    parseFloat((p.attributes || []).find(a => a.attr_key === 'wattage')?.attr_value || 0)
+  ))
+  const MAX_PRICE = Math.max(100, ...reduxProducts.map(p => parseFloat(p.price || 0)))
+
+  const [cats,       setCats]       = useState(() => {
+    const c = searchParams.get('category'); return c ? [c] : []
+  })
   const [sockets,    setSockets]    = useState([])
   const [maxWatt,    setMaxWatt]    = useState(0)
   const [maxPrice,   setMaxPrice]   = useState(0)
   const [inStock,    setInStock]    = useState(false)
   const [sort,       setSort]       = useState('popular')
 
-  // Синхронизируем ползунки когда данные с API загружены
+  // Инициализируем ползунки после загрузки данных
   useEffect(() => {
     if (reduxProducts.length > 0) {
-      setMaxWatt(prev => prev === 0 ? MAX_WATT : prev)
-      setMaxPrice(prev => prev === 0 ? MAX_PRICE : prev)
+      setMaxWatt(prev  => prev  === 0 ? MAX_WATT  : prev)
+      setMaxPrice(prev => prev  === 0 ? MAX_PRICE : prev)
     }
   }, [MAX_WATT, MAX_PRICE, reduxProducts.length])
-  const [localQuery, setLocalQuery] = useState(reduxQuery)
 
-  // Синхронизируем с поиском из Header
+  // localQuery — строка в поле поиска на странице каталога.
+  // Инициализируем пустой строкой, а не из reduxQuery:
+  // при возврате со страницы товара или с главной поиск не должен восстанавливаться.
+  const [localQuery, setLocalQuery] = useState('')
+
+  // Синхронизируем только когда поиск пришёл из Header (переход с другой страницы)
   useEffect(() => { setLocalQuery(reduxQuery) }, [reduxQuery])
 
-  // Загрузка при изменении категории или поискового запроса
+  // Загружаем список при изменении категории.
+  // Поиск теперь работает клиентски (useMemo ниже), поэтому query не нужен здесь.
   useEffect(() => {
     dispatch(fetchCategories())
-    dispatch(fetchProducts({ category: cats[0] || undefined, query: localQuery }))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cats, localQuery])
+    dispatch(fetchProducts({ category: cats[0] || undefined }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats])
+
+  // Сброс при уходе со страницы:
+  // очищаем Redux-query и перезагружаем полный список,
+  // чтобы главная страница снова показывала все товары.
+  useEffect(() => {
+    return () => {
+      dispatch(setQuery(''))
+      dispatch(fetchProducts({}))
+    }
+  }, [dispatch])
 
   const toggle = (arr, setArr, v) =>
     setArr(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
@@ -78,35 +99,52 @@ export default function CatalogPage() {
   const handleClearSearch = () => { setLocalQuery(''); dispatch(setQuery('')) }
 
   const reset = () => {
-    setCats([]); setSockets([]); setMaxWatt(MAX_WATT || 0); setMaxPrice(MAX_PRICE || 0)
+    setCats([]); setSockets([])
+    setMaxWatt(MAX_WATT || 0); setMaxPrice(MAX_PRICE || 0)
     setInStock(false); setLocalQuery(''); dispatch(setQuery(''))
   }
 
+  // ИСПРАВЛЕНИЕ БАГ #1: добавляем фильтрацию по localQuery в useMemo.
+  // Это делает поиск рабочим с любым бэкендом (mock и реальный API),
+  // поскольку фильтрация происходит на клиенте из уже загруженных данных.
   const filtered = useMemo(() => {
     let list = reduxProducts.filter(p => p.status !== 'archived')
+
+    // Текстовый поиск по названию, SKU и описанию
+    if (localQuery.trim()) {
+      const q = localQuery.trim().toLowerCase()
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q))
+      )
+    }
+
     if (sockets.length) list = list.filter(p => {
-      const attrs = p.attributes || []
-      const s = attrs.find(a => a.attr_key === 'socket')
+      const s = (p.attributes || []).find(a => a.attr_key === 'socket')
       return s && sockets.includes(s.attr_value)
     })
     if (maxWatt > 0) list = list.filter(p => {
-      const attrs = p.attributes || []
-      const w = attrs.find(a => a.attr_key === 'wattage')
+      const w = (p.attributes || []).find(a => a.attr_key === 'wattage')
       return !w || parseFloat(w.attr_value) <= maxWatt
     })
     if (maxPrice > 0) list = list.filter(p => parseFloat(p.price) <= maxPrice)
     if (inStock) list = list.filter(p => p.stock_quantity > 0)
+
     switch (sort) {
-      case 'price_asc':  return [...list].sort((a,b) => parseFloat(a.price) - parseFloat(b.price))
-      case 'price_desc': return [...list].sort((a,b) => parseFloat(b.price) - parseFloat(a.price))
-      case 'name':       return [...list].sort((a,b) => a.name.localeCompare(b.name, 'ru'))
+      case 'price_asc':  return [...list].sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+      case 'price_desc': return [...list].sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+      case 'name':       return [...list].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
       default:           return list
     }
-  }, [reduxProducts, sockets, maxWatt, maxPrice, inStock, sort])
+  }, [reduxProducts, localQuery, sockets, maxWatt, maxPrice, inStock, sort])
 
-  const activeCount = cats.length + sockets.length +
-    (maxWatt < MAX_WATT ? 1 : 0) + (maxPrice < MAX_PRICE ? 1 : 0) +
-    (inStock ? 1 : 0) + (localQuery ? 1 : 0)
+  const activeCount =
+    cats.length + sockets.length +
+    (maxWatt < MAX_WATT ? 1 : 0) +
+    (maxPrice < MAX_PRICE ? 1 : 0) +
+    (inStock ? 1 : 0) +
+    (localQuery ? 1 : 0)
 
   return (
     <main className={styles.page}>
@@ -167,10 +205,14 @@ export default function CatalogPage() {
                   fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input className={styles.searchInput} type="text"
+                <input
+                  className={styles.searchInput}
+                  type="text"
                   placeholder="Поиск по названию или артикулу..."
-                  value={localQuery} onChange={e => setLocalQuery(e.target.value)}
-                  aria-label="Поиск товаров"/>
+                  value={localQuery}
+                  onChange={e => setLocalQuery(e.target.value)}
+                  aria-label="Поиск товаров"
+                />
                 {localQuery && (
                   <button className={styles.searchClear} onClick={handleClearSearch} aria-label="Очистить">✕</button>
                 )}
@@ -241,10 +283,10 @@ function CheckRow({ checked, onChange, label, dot }) {
 }
 
 function CatalogCard({ product, animDelay }) {
-  const dispatch  = useDispatch()
-  const cartItems = useSelector(selectCartItems)
-  const price     = parseFloat(product.price)
-  const oldPrice  = product.old_price ? parseFloat(product.old_price) : null
+  const dispatch   = useDispatch()
+  const cartItems  = useSelector(selectCartItems)
+  const price      = parseFloat(product.price)
+  const oldPrice   = product.old_price ? parseFloat(product.old_price) : null
   const outOfStock = product.status === 'out_of_stock' || product.stock_quantity === 0
   const catColor   = CAT_COLORS[product.category.slug] || '#888'
 
@@ -252,7 +294,7 @@ function CatalogCard({ product, animDelay }) {
     <Link to={`/products/${product.sku}`} className={styles.card} style={{ animationDelay: `${animDelay}ms` }}>
       <div className={styles.cardImg}>
         <img src={product.primary_image} alt={product.name} loading="lazy"
-          onError={e => { e.target.onerror=null; e.target.src='/images/led-e27-9w.jpg' }}/>
+          onError={e => { e.target.onerror = null; e.target.src = '/images/led-e27-9w.jpg' }}/>
         <span className={styles.catBadge} style={{ background: catColor }}>{product.category.name}</span>
       </div>
       <div className={styles.cardBody}>

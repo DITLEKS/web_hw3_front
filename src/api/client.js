@@ -31,10 +31,11 @@ export const catalogApi = {
    * GET /api/v1/products?page=&limit=&category=&status=
    * @returns {Promise<{data: ProductListItem[], meta: ProductListMeta}>}
    */
-  getProducts({ page = 1, limit = 20, category, status } = {}) {
+  getProducts({ page = 1, limit = 20, category, status, query } = {}) {
     const params = new URLSearchParams({ page, limit })
     if (category) params.set('category', category)
-    if (status)   params.set('status', status)
+    if (status)   params.set('status',   status)
+    if (query)    params.set('query',    query)   // поиск по тексту
     return request(CATALOG_BASE, `/products?${params}`)
   },
 
