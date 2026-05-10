@@ -1,16 +1,25 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  selectCartItems, selectSubtotal, selectDiscount, selectPromo, selectPromoError,
+  updateItem, removeItem, applyPromo, removePromo,
+} from '../store/cartSlice'
 import styles from './CartPage.module.css'
 
 export default function CartPage() {
-  const { items, subtotal, discount, promo, promoError, updateItem, removeItem, applyPromo, removePromo } = useCart()
+  const dispatch   = useDispatch()
+  const items      = useSelector(selectCartItems)
+  const subtotal   = useSelector(selectSubtotal)
+  const discount   = useSelector(selectDiscount)
+  const promo      = useSelector(selectPromo)
+  const promoError = useSelector(selectPromoError)
   const [promoInput, setPromoInput] = useState('')
   const navigate = useNavigate()
 
   const handlePromo = (e) => {
     e.preventDefault()
-    if (promoInput.trim()) applyPromo(promoInput.trim())
+    if (promoInput.trim()) dispatch(applyPromo(promoInput.trim()))
   }
 
   if (items.length === 0) {
@@ -20,7 +29,7 @@ export default function CartPage() {
           <div className={styles.emptyIcon}>🛒</div>
           <h2 className={styles.emptyTitle}>Корзина пуста</h2>
           <p className={styles.emptySub}>Добавьте товары из каталога, чтобы оформить заказ</p>
-          <Link to="/catalog" className="btn btn-primary btn-lg">Перейти в каталог</Link>
+          <Link to="/" className="btn btn-primary btn-lg">Перейти в каталог</Link>
         </div>
       </main>
     )
@@ -37,20 +46,15 @@ export default function CartPage() {
 
         <div className={styles.layout}>
 
-          {/* Список товаров */}
           <div className={styles.itemsList}>
             {items.map((item, idx) => (
-              <CartItem
-                key={item.sku}
-                item={item}
-                onUpdate={updateItem}
-                onRemove={removeItem}
-                animDelay={idx * 60}
-              />
+              <CartItem key={item.sku} item={item}
+                onUpdate={(sku, qty) => dispatch(updateItem({ sku, qty }))}
+                onRemove={(sku) => dispatch(removeItem(sku))}
+                animDelay={idx * 60}/>
             ))}
           </div>
 
-          {/* Итог */}
           <aside className={`${styles.summary} anim-fade-up delay-2`}>
             <h2 className={styles.summaryTitle}>Итог заказа</h2>
 
@@ -61,8 +65,7 @@ export default function CartPage() {
               </div>
               {discount > 0 && (
                 <div className={`${styles.summaryLine} ${styles.discount}`}>
-                  <span>Скидка по промокоду</span>
-                  <span>−{discount} ₽</span>
+                  <span>Скидка по промокоду</span><span>−{discount} ₽</span>
                 </div>
               )}
               <div className={styles.summaryLine}>
@@ -76,89 +79,58 @@ export default function CartPage() {
               <strong>{subtotal - discount} ₽</strong>
             </div>
 
-            {/* Промокод */}
             {promo ? (
               <div className={styles.promoApplied}>
                 <span>🎉 Промокод <strong>{promo.code}</strong> применён</span>
-                <button onClick={removePromo} className={styles.promoRemove} aria-label="Убрать промокод">✕</button>
+                <button onClick={() => dispatch(removePromo())} className={styles.promoRemove} aria-label="Убрать промокод">✕</button>
               </div>
             ) : (
               <form className={styles.promoForm} onSubmit={handlePromo}>
-                <input
-                  className={`input ${promoError ? styles.inputError : ''}`}
-                  placeholder="Введите промокод"
-                  value={promoInput}
-                  onChange={e => setPromoInput(e.target.value.toUpperCase())}
-                />
-                <button type="submit" className="btn btn-outline">Применить</button>
+                <div className={styles.promoInputRow}>
+                  <input className={`input ${promoError ? styles.inputError : ''}`}
+                    placeholder="Введите промокод" value={promoInput}
+                    onChange={e => setPromoInput(e.target.value.toUpperCase())}/>
+                  <button type="submit" className="btn btn-outline">Применить</button>
+                </div>
                 {promoError && <p className={styles.promoError}>{promoError}</p>}
                 <p className={styles.promoHint}>Тест: SALE20, WELCOME, SMART15</p>
               </form>
             )}
 
-            <button
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%' }}
-              onClick={() => navigate('/checkout')}
-            >
+            <button className="btn btn-primary btn-lg" style={{ width: '100%' }}
+              onClick={() => navigate('/checkout')}>
               Оформить заказ →
             </button>
 
-            <Link to="/" className={styles.continueShopping}>← Продолжить покупки</Link>
+            <Link to="/catalog" className={styles.continueShopping}>← Продолжить покупки</Link>
           </aside>
-
         </div>
       </div>
     </main>
   )
 }
 
-// ── CartItem ──────────────────────────────────────────────────────── //
-
 function CartItem({ item, onUpdate, onRemove, animDelay }) {
   return (
-    <div
-      className={`${styles.item} anim-fade-up`}
-      style={{ animationDelay: `${animDelay}ms` }}
-    >
+    <div className={`${styles.item} anim-fade-up`} style={{ animationDelay: `${animDelay}ms` }}>
       <Link to={`/products/${item.sku}`} className={styles.itemImage}>
         <img src={item.image} alt={item.name} />
       </Link>
-
       <div className={styles.itemBody}>
-        <Link to={`/products/${item.sku}`} className={styles.itemName}>
-          {item.name}
-        </Link>
+        <Link to={`/products/${item.sku}`} className={styles.itemName}>{item.name}</Link>
         <p className={styles.itemSku}>Арт.: {item.sku}</p>
-
         <div className={styles.itemFooter}>
           <div className={styles.qtyControl}>
-            <button
-              className={styles.qtyBtn}
-              onClick={() => onUpdate(item.sku, item.quantity - 1)}
-              aria-label="Уменьшить"
-            >−</button>
+            <button className={styles.qtyBtn} onClick={() => onUpdate(item.sku, item.quantity - 1)} aria-label="Уменьшить">−</button>
             <span className={styles.qtyVal}>{item.quantity}</span>
-            <button
-              className={styles.qtyBtn}
-              onClick={() => onUpdate(item.sku, Math.min(item.stock, item.quantity + 1))}
-              aria-label="Увеличить"
-              disabled={item.quantity >= item.stock}
-            >+</button>
+            <button className={styles.qtyBtn} onClick={() => onUpdate(item.sku, Math.min(item.stock, item.quantity + 1))}
+              aria-label="Увеличить" disabled={item.quantity >= item.stock}>+</button>
           </div>
-
           <div className={styles.itemPrice}>
             <strong>{item.price * item.quantity} ₽</strong>
-            {item.quantity > 1 && (
-              <span>{item.price} ₽ × {item.quantity}</span>
-            )}
+            {item.quantity > 1 && <span>{item.price} ₽ × {item.quantity}</span>}
           </div>
-
-          <button
-            className={styles.removeBtn}
-            onClick={() => onRemove(item.sku)}
-            aria-label="Удалить"
-          >
+          <button className={styles.removeBtn} onClick={() => onRemove(item.sku)} aria-label="Удалить">
             <TrashIcon />
           </button>
         </div>

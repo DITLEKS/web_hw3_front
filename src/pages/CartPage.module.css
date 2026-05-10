@@ -216,3 +216,8 @@
   .itemFooter { flex-wrap: wrap; gap: 10px; }
   .itemPrice { flex-direction: row; align-items: center; gap: 8px; }
 }
+
+/* Промокод — строка инпут + кнопка */
+.promoInputRow { display: flex; gap: 8px; align-items: center; }
+.promoInputRow .input { flex: 1; }
+.promoInputRow .btn   { flex-shrink: 0; }

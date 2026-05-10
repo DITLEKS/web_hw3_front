@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORIES, PRODUCTS } from '../data/mock'
-import { useCart } from '../context/CartContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { addItem, selectCartItems } from '../store/cartSlice'
 import styles from './HomePage.module.css'
 
 const CAT_COLORS = {
@@ -86,7 +87,9 @@ export default function HomePage() {
 }
 
 function HomeCard({ product, animDelay }) {
-  const { items, addItem } = useCart()
+  const dispatch = useDispatch()
+  const items = useSelector(selectCartItems)
+  const dispatchAdd = (product) => dispatch(addItem({ product, qty: 1 }))
   const inCart = items.some(i => i.sku === product.sku)
   const price = parseFloat(product.price)
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null
@@ -114,7 +117,7 @@ function HomeCard({ product, animDelay }) {
           </span>
         </div>
         <button className={`${styles.addBtn} ${inCart?styles.inCartBtn:''}`}
-          onClick={e=>{e.preventDefault();e.stopPropagation();if(!outOfStock)addItem(product,1)}}
+          onClick={e=>{e.preventDefault();e.stopPropagation();if(!outOfStock)dispatchAdd(product)}}
           disabled={outOfStock}>
           {inCart ? '✓ В корзине' : 'В корзину'}
         </button>
