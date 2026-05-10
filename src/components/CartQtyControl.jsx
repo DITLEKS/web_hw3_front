@@ -7,7 +7,7 @@ import styles from './CartQtyControl.module.css'
  * - Если товара нет в корзине → кнопка «В корзину»
  * - Если есть → «− N +»; при N=0 возвращается к «В корзину»
  *
- * Пропсы:
+ * Props:
  *   product       – объект товара из Redux/mock
  *   outOfStock?   – boolean
  *   size?         – 'sm' | 'md' (по умолчанию 'md')

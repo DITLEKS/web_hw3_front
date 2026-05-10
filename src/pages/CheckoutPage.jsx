@@ -48,8 +48,21 @@ export default function CheckoutPage() {
     const errs = {}
     if (!form.first_name.trim()) errs.first_name = 'Введите имя'
     if (!form.last_name.trim())  errs.last_name  = 'Введите фамилию'
-    if (!form.phone.trim())      errs.phone      = 'Введите телефон'
-    if (!form.email.trim())      errs.email      = 'Введите email'
+
+    const phoneDigits = form.phone.replace(/[^0-9]/g, '')
+    if (!phoneDigits) {
+      errs.phone = 'Введите телефон'
+    } else if (phoneDigits.length < 10) {
+      errs.phone = 'Телефон должен содержать не менее 10 цифр'
+    }
+
+    if (!form.email.trim()) {
+      errs.email = 'Введите email'
+    } else {
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRe.test(form.email)) errs.email = 'Введите корректный email'
+    }
+
     if (form.delivery_type !== 'pickup') {
       if (!form.city.trim())   errs.city   = 'Введите город'
       if (!form.street.trim()) errs.street = 'Введите адрес'

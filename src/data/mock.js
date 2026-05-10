@@ -21,9 +21,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 150,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/ed666443eec52e00d9b3f66c3841a6850884f0eb.jpg',
+    primary_image: '/images/led-e27-9w.jpg',
     images: [
-      { id: 1, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/ed666443eec52e00d9b3f66c3841a6850884f0eb.jpg', alt_text: 'LED лампа E27', is_primary: true },
+      { id: 1, url: '/images/led-e27-9w.jpg', alt_text: 'LED лампа E27', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '9',     unit: 'Вт' },
@@ -45,9 +45,9 @@ export const PRODUCTS = [
     old_price: 99,
     stock_quantity: 200,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/ad3c6d326c041990ea6089f9a13acf2010c26a9f.jpg',
+    primary_image: '/images/led-e14-7w.jpg',
     images: [
-      { id: 2, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/ad3c6d326c041990ea6089f9a13acf2010c26a9f.jpg', alt_text: 'LED свеча E14', is_primary: true },
+      { id: 2, url: '/images/led-e14-7w.jpg', alt_text: 'LED свеча E14', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '7',     unit: 'Вт' },
@@ -69,9 +69,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 80,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5461cea1ffaeb28b69e76c5f0da48393cb154ead.jpg',
+    primary_image: '/images/led-gu10-5w.jpg',
     images: [
-      { id: 3, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5461cea1ffaeb28b69e76c5f0da48393cb154ead.jpg', alt_text: 'LED GU10', is_primary: true },
+      { id: 3, url: '/images/led-gu10-5w.jpg', alt_text: 'LED GU10', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '5',    unit: 'Вт' },
@@ -93,9 +93,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 50,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/fa8c43b938c61d4968b16a6445c90f4e3fb42b70.jpg',
+    primary_image: '/images/fil-e27-4w.jpg',
     images: [
-      { id: 4, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/fa8c43b938c61d4968b16a6445c90f4e3fb42b70.jpg', alt_text: 'Филаментная лампа', is_primary: true },
+      { id: 4, url: '/images/fil-e27-4w.jpg', alt_text: 'Филаментная лампа', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '4',    unit: 'Вт' },
@@ -117,9 +117,9 @@ export const PRODUCTS = [
     old_price: 399,
     stock_quantity: 35,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/097a0023b53bcfd2f38bc697883b0a202830aa25.jpg',
+    primary_image: '/images/fil-e27-6w.jpg',
     images: [
-      { id: 5, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/097a0023b53bcfd2f38bc697883b0a202830aa25.jpg', alt_text: 'Лампа Эдисона', is_primary: true },
+      { id: 5, url: '/images/fil-e27-6w.jpg', alt_text: 'Лампа Эдисона', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '6',    unit: 'Вт' },
@@ -142,9 +142,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 30,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/52afeb4a429c437fedb49ee7b459138051db20c0.jpg',
+    primary_image: '/images/smt-e27-10w.jpg',
     images: [
-      { id: 6, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/52afeb4a429c437fedb49ee7b459138051db20c0.jpg', alt_text: 'Smart лампа E27', is_primary: true },
+      { id: 6, url: '/images/smt-e27-10w.jpg', alt_text: 'Smart лампа E27', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',    attr_value: '10',         unit: 'Вт' },
@@ -167,9 +167,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 25,
     status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/10ea9d825a7009ba80cdb534112188dab55c74b4.jpg',
+    primary_image: '/images/smt-e14-9w.jpg',
     images: [
-      { id: 7, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/10ea9d825a7009ba80cdb534112188dab55c74b4.jpg', alt_text: 'Smart лампа E14', is_primary: true },
+      { id: 7, url: '/images/smt-e14-9w.jpg', alt_text: 'Smart лампа E14', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage',  attr_value: '9',         unit: 'Вт' },
@@ -191,9 +191,9 @@ export const PRODUCTS = [
     old_price: null,
     stock_quantity: 0,
     status: 'out_of_stock',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/6a7c34c006a36155a87cb24ccafb51d267b1af3e.jpg',
+    primary_image: '/images/hal-gu10-50w.jpg',
     images: [
-      { id: 8, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/6a7c34c006a36155a87cb24ccafb51d267b1af3e.jpg', alt_text: 'Галогенная лампа GU10', is_primary: true },
+      { id: 8, url: '/images/hal-gu10-50w.jpg', alt_text: 'Галогенная лампа GU10', is_primary: true },
     ],
     attributes: [
       { attr_key: 'wattage', attr_value: '50',  unit: 'Вт' },
@@ -209,8 +209,8 @@ export const PRODUCTS = [
     name: 'Лампа светодиодная груша 12 Вт E27',
     description: 'Мощная LED лампа для больших помещений. 1100 лм, нейтральный белый свет 4000K.',
     price: 129, old_price: 159, stock_quantity: 90, status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/1750cd9cc074346a1b9ed459313c48a2bf4e3406.jpg',
-    images: [{ id: 9, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/1750cd9cc074346a1b9ed459313c48a2bf4e3406.jpg', alt_text: 'LED 12W E27', is_primary: true }],
+    primary_image: '/images/led-e27-12w.jpg',
+    images: [{ id: 9, url: '/images/led-e27-12w.jpg', alt_text: 'LED 12W E27', is_primary: true }],
     attributes: [
       { attr_key: 'wattage', attr_value: '12', unit: 'Вт' },
       { attr_key: 'socket', attr_value: 'E27', unit: null },
@@ -226,8 +226,8 @@ export const PRODUCTS = [
     name: 'Лампа филаментная свеча 4 Вт E14',
     description: 'Филаментная лампа форм-фактора свеча с цоколем E14. Идеальна для хрустальных люстр.',
     price: 249, old_price: null, stock_quantity: 40, status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/32ba94d14f2a6ce2d5bae22e4496eccc2d38333d.jpg',
-    images: [{ id: 10, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/32ba94d14f2a6ce2d5bae22e4496eccc2d38333d.jpg', alt_text: 'Filament E14', is_primary: true }],
+    primary_image: '/images/fil-e14-4w.jpg',
+    images: [{ id: 10, url: '/images/fil-e14-4w.jpg', alt_text: 'Filament E14', is_primary: true }],
     attributes: [
       { attr_key: 'wattage', attr_value: '4', unit: 'Вт' },
       { attr_key: 'socket', attr_value: 'E14', unit: null },
@@ -243,8 +243,8 @@ export const PRODUCTS = [
     name: 'Умная лампа GU10 6 Вт RGB',
     description: 'Умная лампа с цоколем GU10, поддержкой RGB и управлением через приложение. 16 млн цветов.',
     price: 590, old_price: 690, stock_quantity: 20, status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/18521090f5788699abb344066724be6f01eb981f.jpg',
-    images: [{ id: 11, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/18521090f5788699abb344066724be6f01eb981f.jpg', alt_text: 'Smart GU10', is_primary: true }],
+    primary_image: '/images/smt-gu10-6w.jpg',
+    images: [{ id: 11, url: '/images/smt-gu10-6w.jpg', alt_text: 'Smart GU10', is_primary: true }],
     attributes: [
       { attr_key: 'wattage', attr_value: '6', unit: 'Вт' },
       { attr_key: 'socket', attr_value: 'GU10', unit: null },
@@ -260,8 +260,8 @@ export const PRODUCTS = [
     name: 'Лампа галогенная груша 42 Вт E27',
     description: 'Классическая галогенная лампа с улучшенной цветопередачей. Замена 60 Вт лампы накаливания.',
     price: 65, old_price: null, stock_quantity: 0, status: 'active',
-    primary_image: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/0f72eef4ebf3fe5b7e0a7b8e2bbc83e9083c4659.jpg',
-    images: [{ id: 12, url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/0f72eef4ebf3fe5b7e0a7b8e2bbc83e9083c4659.jpg', alt_text: 'Halogen E27', is_primary: true }],
+    primary_image: '/images/hal-e27-42w.jpg',
+    images: [{ id: 12, url: '/images/hal-e27-42w.jpg', alt_text: 'Halogen E27', is_primary: true }],
     attributes: [
       { attr_key: 'wattage', attr_value: '42', unit: 'Вт' },
       { attr_key: 'socket', attr_value: 'E27', unit: null },

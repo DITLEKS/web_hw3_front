@@ -10,7 +10,8 @@ export default function ProductCard({ product, animDelay = 0 }) {
       style={{ animationDelay: `${animDelay}ms` }}>
       <div className={styles.imageWrap}>
         <img src={product.primary_image} alt={product.name}
-          className={styles.image} loading="lazy"/>
+          className={styles.image} loading="lazy"
+          onError={e => { e.target.onerror=null; e.target.src='/images/led-e27-9w.jpg' }}/>
         {outOfStock && <div className={styles.outOfStock}>Нет в наличии</div>}
         {product.old_price && !outOfStock && <div className={styles.saleBadge}>Скидка</div>}
       </div>

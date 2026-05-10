@@ -1,54 +1,45 @@
+import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { addItem } from '../store/cartSlice'
+import { fetchOrders, selectOrders, selectOrdersLoading } from '../store/ordersSlice'
 import styles from './OrdersPage.module.css'
 
-const MOCK_ORDERS = [
-  {
-    id: 'ORD-2025-001',
-    date: '28.04.2025',
-    status: 'delivered',
-    statusLabel: 'Доставлен',
-    total: 534,
-    items: [
-      { sku: 'LX-LED-E27-9W', name: 'Лампа светодиодная груша 9 Вт E27', qty: 2, price: 89 },
-      { sku: 'LX-FIL-E27-8W', name: 'Лампа филаментная винтажная 8 Вт E27', qty: 2, price: 180 },
-    ],
-  },
-  {
-    id: 'ORD-2025-002',
-    date: '01.05.2025',
-    status: 'processing',
-    statusLabel: 'В обработке',
-    total: 450,
-    items: [
-      { sku: 'LX-SMART-E27-10W', name: 'Умная лампа Wi-Fi RGB 10 Вт E27', qty: 1, price: 450 },
-    ],
-  },
-]
+const STATUS_MAP = {
+  pending:    { label: 'Ожидает',      bg: '#fff7e0', color: '#B87208' },
+  processing: { label: 'В обработке',  bg: '#fff7e0', color: '#B87208' },
+  confirmed:  { label: 'Подтверждён',  bg: '#e0f0ff', color: '#0066CC' },
+  shipped:    { label: 'Доставляется', bg: '#e0f0ff', color: '#0066CC' },
+  delivered:  { label: 'Доставлен',    bg: '#e6f7ee', color: '#2D7A4F' },
+  cancelled:  { label: 'Отменён',      bg: '#fef2f2', color: '#EF4444' },
+}
 
-const STATUS_COLOR = {
-  delivered:  { bg: '#e6f7ee', color: '#2D7A4F' },
-  processing: { bg: '#fff7e0', color: '#B87208' },
-  cancelled:  { bg: '#fef2f2', color: '#EF4444' },
-  shipped:    { bg: '#e0f0ff', color: '#0066CC' },
+function formatDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 export default function OrdersPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const orders   = useSelector(selectOrders)
+  const loading  = useSelector(selectOrdersLoading)
+
+  useEffect(() => { dispatch(fetchOrders()) }, [dispatch])
 
   const handleRepeat = (order) => {
-    order.items.forEach(item => {
-      const mockProduct = {
-        sku:           item.sku,
-        name:          item.name,
-        price:         String(item.price),
-        primary_image: '',
+    const items = order.items ?? order.order_items ?? []
+    items.forEach(item => {
+      const product = {
+        sku:            item.sku ?? item.product_sku,
+        name:           item.name ?? item.product_name ?? item.sku,
+        price:          String(item.price ?? item.unit_price ?? 0),
+        primary_image:  item.primary_image ?? '',
         stock_quantity: 99,
-        status:        'active',
+        status:         'active',
       }
-      dispatch(addItem({ product: mockProduct, qty: item.qty }))
+      dispatch(addItem({ product, qty: item.qty ?? item.quantity ?? 1 }))
     })
     navigate('/cart')
   }
@@ -56,7 +47,6 @@ export default function OrdersPage() {
   return (
     <main className={styles.page}>
       <div className="container">
-
         <nav className={styles.breadcrumb}>
           <Link to="/">Главная</Link>
           <span>/</span>
@@ -65,46 +55,68 @@ export default function OrdersPage() {
 
         <h1 className={styles.title}>Мои заказы</h1>
 
-        {MOCK_ORDERS.length === 0 ? (
+        {loading && (
+          <div className={styles.loading}>
+            {[1,2,3].map(i => <div key={i} className={styles.skeletonCard}/>)}
+          </div>
+        )}
+
+        {!loading && orders.length === 0 && (
           <div className={styles.empty}>
             <span className={styles.emptyIcon}>📦</span>
             <p>У вас пока нет заказов</p>
             <Link to="/catalog" className="btn btn-primary">Перейти в каталог</Link>
           </div>
-        ) : (
+        )}
+
+        {!loading && orders.length > 0 && (
           <div className={styles.list}>
-            {MOCK_ORDERS.map(order => {
-              const sc = STATUS_COLOR[order.status] || STATUS_COLOR.processing
+            {orders.map(order => {
+              const statusKey = order.status ?? 'processing'
+              const sc = STATUS_MAP[statusKey] ?? STATUS_MAP.processing
+              const items = order.items ?? order.order_items ?? []
+              const total = parseFloat(order.total_amount ?? order.total ?? 0)
+              const date  = formatDate(order.created_at ?? order.date)
+
               return (
-                <div key={order.id} className={styles.card}>
+                <div key={order.order_number ?? order.id} className={styles.card}>
                   <div className={styles.cardHeader}>
                     <div className={styles.cardMeta}>
-                      <span className={styles.orderId}>Заказ {order.id}</span>
-                      <span className={styles.orderDate}>от {order.date}</span>
+                      <span className={styles.orderId}>Заказ {order.order_number ?? order.id}</span>
+                      {date && <span className={styles.orderDate}>от {date}</span>}
                     </div>
                     <span className={styles.statusBadge}
                       style={{ background: sc.bg, color: sc.color }}>
-                      {order.statusLabel}
+                      {sc.label}
                     </span>
                   </div>
 
-                  <div className={styles.items}>
-                    {order.items.map((item, i) => (
-                      <div key={i} className={styles.item}>
-                        <span className={styles.itemName}>{item.name}</span>
-                        <span className={styles.itemQty}>{item.qty} шт.</span>
-                        <span className={styles.itemPrice}>{item.price * item.qty} ₽</span>
-                      </div>
-                    ))}
-                  </div>
+                  {items.length > 0 && (
+                    <div className={styles.items}>
+                      {items.map((item, i) => {
+                        const name  = item.name ?? item.product_name ?? item.sku ?? item.product_sku
+                        const qty   = item.qty ?? item.quantity ?? 1
+                        const price = parseFloat(item.price ?? item.unit_price ?? 0)
+                        return (
+                          <div key={i} className={styles.item}>
+                            <span className={styles.itemName}>{name}</span>
+                            <span className={styles.itemQty}>{qty} шт.</span>
+                            <span className={styles.itemPrice}>{(price * qty).toFixed(0)} ₽</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   <div className={styles.cardFooter}>
                     <span className={styles.total}>
-                      Итого: <strong>{order.total} ₽</strong>
+                      Итого: <strong>{total.toFixed(0)} ₽</strong>
                     </span>
-                    <button className={styles.repeatBtn} onClick={() => handleRepeat(order)}>
-                      Повторить заказ
-                    </button>
+                    {items.length > 0 && (
+                      <button className={styles.repeatBtn} onClick={() => handleRepeat(order)}>
+                        Повторить заказ
+                      </button>
+                    )}
                   </div>
                 </div>
               )

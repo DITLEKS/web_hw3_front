@@ -73,3 +73,17 @@
   .item { flex-wrap: wrap; }
   .itemName { width: 100%; }
 }
+
+/* ── Loading skeletons ── */
+.loading { display: flex; flex-direction: column; gap: 16px; }
+.skeletonCard {
+  height: 140px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--c-surface-2, #f0ede8) 25%, var(--c-border, #e5e0d8) 50%, var(--c-surface-2, #f0ede8) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0 }
+  100% { background-position:  200% 0 }
+}

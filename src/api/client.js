@@ -8,10 +8,15 @@ const ORDERS_BASE = import.meta.env.VITE_ORDERS_API_URL
   : '/orders/api/v1'
 
 async function request(baseUrl, path, options = {}) {
-  const res = await fetch(`${baseUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  })
+  const { body, headers, ...rest } = options
+  const init = {
+    headers: { 'Content-Type': 'application/json', ...headers },
+    ...rest,
+  }
+  if (body !== undefined) {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body)
+  }
+  const res = await fetch(`${baseUrl}${path}`, init)
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Неизвестная ошибка' }))
     throw Object.assign(new Error(err.message || 'API error'), { status: res.status, data: err })
@@ -19,7 +24,7 @@ async function request(baseUrl, path, options = {}) {
   return res.json()
 }
 
-// API каталога
+// ── Catalog API ──────────────────────────────────────────────────── //
 
 export const catalogApi = {
   /**
@@ -50,7 +55,7 @@ export const catalogApi = {
   },
 }
 
-// API заказов и корзины
+// ── Orders / Cart API ────────────────────────────────────────────── //
 
 export const ordersApi = {
   /**
@@ -99,6 +104,24 @@ export const ordersApi = {
   },
 
   /**
+   * GET /api/v1/orders
+   * @returns {Promise<{data: OrderOut[]}>}
+   */
+  getOrders(sessionId) {
+    return request(ORDERS_BASE, '/orders', {
+      headers: sessionId ? { 'X-Session-Id': sessionId } : {},
+    })
+  },
+
+  /**
+   * GET /api/v1/orders/:orderNumber
+   * @returns {Promise<{data: OrderDetailOut}>}
+   */
+  getOrder(orderNumber) {
+    return request(ORDERS_BASE, `/orders/${encodeURIComponent(orderNumber)}`)
+  },
+
+  /**
    * POST /api/v1/orders
    * Body: CreateOrderRequest
    * @returns {Promise<{data: OrderCreatedData, message: string}>}
@@ -107,7 +130,7 @@ export const ordersApi = {
     return request(ORDERS_BASE, '/orders', {
       method: 'POST',
       headers: sessionId ? { 'X-Session-Id': sessionId } : {},
-      body: JSON.stringify(payload),
+      body: payload,
     })
   },
 }

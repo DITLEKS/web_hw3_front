@@ -89,4 +89,10 @@ const catalogSlice = createSlice({
 })
 
 export const { setQuery, setActiveCategory, clearProduct } = catalogSlice.actions
+
+export const selectProducts       = s => s.catalog.products
+export const selectCategories     = s => s.catalog.categories
+export const selectCatalogLoading = s => s.catalog.loading
+export const selectProduct        = s => s.catalog.product
+export const selectCatalogQuery   = s => s.catalog.query
 export default catalogSlice.reducer

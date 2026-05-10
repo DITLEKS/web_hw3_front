@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchProducts, fetchCategories, setQuery } from '../store/catalogSlice'
 import { addItem, selectCartItems } from '../store/cartSlice'
-import { PRODUCTS, CATEGORIES } from '../data/mock'
+import { CATEGORIES } from '../data/mock'
 import CartQtyControl from '../components/CartQtyControl'
 import styles from './CatalogPage.module.css'
 
@@ -19,12 +19,7 @@ const SORT_OPTIONS = [
   { value: 'name',      label: 'По названию' },
 ]
 
-const ALL_SOCKETS = [...new Set(
-  PRODUCTS.flatMap(p => p.attributes.filter(a => a.attr_key === 'socket').map(a => a.attr_value))
-)].sort()
-
-const MAX_WATT  = Math.max(...PRODUCTS.map(p => parseFloat(p.attributes.find(a => a.attr_key === 'wattage')?.attr_value || 0)))
-const MAX_PRICE = Math.max(...PRODUCTS.map(p => parseFloat(p.price)))
+// Сокеты, MAX_WATT, MAX_PRICE считаются из данных Redux внутри компонента
 
 function plural(n) {
   if (n % 100 >= 11 && n % 100 <= 19) return 'товаров'
@@ -34,18 +29,32 @@ function plural(n) {
 }
 
 export default function CatalogPage() {
+  const [searchParams] = useSearchParams()
   const dispatch       = useDispatch()
   const reduxProducts  = useSelector(s => s.catalog.products)
+  const ALL_SOCKETS = [...new Set(
+    reduxProducts.flatMap(p => (p.attributes || []).filter(a => a.attr_key === 'socket').map(a => a.attr_value))
+  )].sort()
+  const MAX_WATT  = Math.max(50, ...reduxProducts.map(p => parseFloat((p.attributes || []).find(a => a.attr_key === 'wattage')?.attr_value || 0)))
+  const MAX_PRICE = Math.max(100, ...reduxProducts.map(p => parseFloat(p.price || 0)))
   const reduxLoading   = useSelector(s => s.catalog.loading)
   const reduxQuery     = useSelector(s => s.catalog.query)
   const categories     = useSelector(s => s.catalog.categories.length ? s.catalog.categories : CATEGORIES)
 
-  const [cats,       setCats]       = useState([])
+  const [cats,       setCats]       = useState(() => { const c = searchParams.get('category'); return c ? [c] : [] })
   const [sockets,    setSockets]    = useState([])
-  const [maxWatt,    setMaxWatt]    = useState(MAX_WATT)
-  const [maxPrice,   setMaxPrice]   = useState(MAX_PRICE)
+  const [maxWatt,    setMaxWatt]    = useState(0)
+  const [maxPrice,   setMaxPrice]   = useState(0)
   const [inStock,    setInStock]    = useState(false)
   const [sort,       setSort]       = useState('popular')
+
+  // Синхронизируем ползунки когда данные с API загружены
+  useEffect(() => {
+    if (reduxProducts.length > 0) {
+      setMaxWatt(prev => prev === 0 ? MAX_WATT : prev)
+      setMaxPrice(prev => prev === 0 ? MAX_PRICE : prev)
+    }
+  }, [MAX_WATT, MAX_PRICE, reduxProducts.length])
   const [localQuery, setLocalQuery] = useState(reduxQuery)
 
   // Синхронизируем с поиском из Header
@@ -69,21 +78,23 @@ export default function CatalogPage() {
   const handleClearSearch = () => { setLocalQuery(''); dispatch(setQuery('')) }
 
   const reset = () => {
-    setCats([]); setSockets([]); setMaxWatt(MAX_WATT); setMaxPrice(MAX_PRICE)
+    setCats([]); setSockets([]); setMaxWatt(MAX_WATT || 0); setMaxPrice(MAX_PRICE || 0)
     setInStock(false); setLocalQuery(''); dispatch(setQuery(''))
   }
 
   const filtered = useMemo(() => {
     let list = reduxProducts.filter(p => p.status !== 'archived')
     if (sockets.length) list = list.filter(p => {
-      const s = p.attributes.find(a => a.attr_key === 'socket')
+      const attrs = p.attributes || []
+      const s = attrs.find(a => a.attr_key === 'socket')
       return s && sockets.includes(s.attr_value)
     })
-    list = list.filter(p => {
-      const w = p.attributes.find(a => a.attr_key === 'wattage')
+    if (maxWatt > 0) list = list.filter(p => {
+      const attrs = p.attributes || []
+      const w = attrs.find(a => a.attr_key === 'wattage')
       return !w || parseFloat(w.attr_value) <= maxWatt
     })
-    list = list.filter(p => parseFloat(p.price) <= maxPrice)
+    if (maxPrice > 0) list = list.filter(p => parseFloat(p.price) <= maxPrice)
     if (inStock) list = list.filter(p => p.stock_quantity > 0)
     switch (sort) {
       case 'price_asc':  return [...list].sort((a,b) => parseFloat(a.price) - parseFloat(b.price))
@@ -240,7 +251,8 @@ function CatalogCard({ product, animDelay }) {
   return (
     <Link to={`/products/${product.sku}`} className={styles.card} style={{ animationDelay: `${animDelay}ms` }}>
       <div className={styles.cardImg}>
-        <img src={product.primary_image} alt={product.name} loading="lazy"/>
+        <img src={product.primary_image} alt={product.name} loading="lazy"
+          onError={e => { e.target.onerror=null; e.target.src='/images/led-e27-9w.jpg' }}/>
         <span className={styles.catBadge} style={{ background: catColor }}>{product.category.name}</span>
       </div>
       <div className={styles.cardBody}>

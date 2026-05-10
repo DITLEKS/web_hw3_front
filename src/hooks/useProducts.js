@@ -18,7 +18,7 @@ export function useProducts(categorySlug = null) {
     setError(null)
     try {
       if (USE_MOCK) {
-        // Макет: фильтруем локально
+        // Mock: фильтруем локально
         await new Promise(r => setTimeout(r, 0))
         const filtered = categorySlug
           ? PRODUCTS.filter(p => p.category.slug === categorySlug && p.status !== 'archived')
@@ -95,7 +95,7 @@ export function useCategories() {
           setCategories(CATEGORIES)
         } else {
           const res = await catalogApi.getCategories()
-          // Бэкенд возвращает color_hex, в mock — color. Нормализуем.
+          // Backend возвращает color_hex, в mock — color. Нормализуем.
           setCategories(res.data.map(c => ({ ...c, color: c.color_hex ?? c.color })))
         }
       } catch {

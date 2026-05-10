@@ -295,3 +295,9 @@
   .stepLabel { font-size: 10px; }
   .timelineLine { min-width: 12px; }
 }
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0 80px;
+}

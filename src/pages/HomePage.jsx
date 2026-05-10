@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { CATEGORIES, PRODUCTS } from '../data/mock'
 import { useDispatch, useSelector } from 'react-redux'
+import { fetchProducts, selectProducts } from '../store/catalogSlice'
+import { Link } from 'react-router-dom'
+import { CATEGORIES } from '../data/mock'
 import CartQtyControl from '../components/CartQtyControl'
 import { addItem, selectCartItems } from '../store/cartSlice'
 import styles from './HomePage.module.css'
@@ -27,7 +28,14 @@ const BANNERS = [
 
 export default function HomePage() {
   const [slide, setSlide] = useState(0)
-  const popular = PRODUCTS.filter(p => p.status === 'active').slice(0, 4)
+  const dispatch = useDispatch()
+  const allProducts = useSelector(selectProducts)
+  const popular = allProducts.filter(p => p.status === 'active').slice(0, 4)
+
+  useEffect(() => {
+    // Загружаем товары если store ещё пустой (пользователь зашёл сразу на главную)
+    if (allProducts.length === 0) dispatch(fetchProducts())
+  }, [dispatch, allProducts.length])
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % BANNERS.length), 5000)
@@ -58,7 +66,7 @@ export default function HomePage() {
 
       <section className={`container ${styles.catsSection}`}>
         {CATEGORIES.map(cat => (
-          <Link key={cat.slug} to="/catalog" className={styles.catCard}>
+          <Link key={cat.slug} to={`/catalog?category=${cat.slug}`} className={styles.catCard}>
             <div className={styles.catIcon}
               style={{ color: CAT_COLORS[cat.slug]||cat.color, background:(CAT_COLORS[cat.slug]||cat.color)+'1a' }}>
               {CAT_ICONS[cat.slug]||<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="8"/></svg>}
@@ -88,7 +96,6 @@ export default function HomePage() {
 }
 
 function HomeCard({ product, animDelay }) {
-  const dispatch = useDispatch()
   const items = useSelector(selectCartItems)
   const dispatchAdd = (product) => dispatch(addItem({ product, qty: 1 }))
   const inCart = items.some(i => i.sku === product.sku)
