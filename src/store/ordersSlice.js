@@ -18,7 +18,7 @@ export const fetchOrders = createAsyncThunk(
       const enriched = await Promise.all(
         list.map(async (order) => {
           try {
-            const detail = await ordersApi.getOrder(order.order_number)
+            const detail = await ordersApi.getOrder(order.order_number, getSessionId())
             const data   = detail.data ?? detail
             return { ...order, items: data.items ?? [] }
           } catch {
@@ -101,7 +101,7 @@ export const createOrder = createAsyncThunk(
         orderData = res.data ?? res
         // Запрашиваем детали только что созданного заказа для получения позиций
         try {
-          const detail = await ordersApi.getOrder(orderData.order_number)
+          const detail = await ordersApi.getOrder(orderData.order_number, getSessionId())
           const detailData = detail.data ?? detail
           orderData = { ...orderData, items: detailData.items ?? [] }
         } catch { /* не критично — используем orderData без items */ }

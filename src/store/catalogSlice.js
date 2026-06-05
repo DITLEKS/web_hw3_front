@@ -23,7 +23,7 @@ export const fetchProducts = createAsyncThunk(
       if (category) params.category = category
       if (query)    params.query    = query   // передаём query в API
       const res = await catalogApi.getProducts(params)
-      return Array.isArray(res.data) ? res.data : (res.data?.items ?? [])
+      return Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.items ?? [])
     } catch (e) {
       return rejectWithValue(e.message || 'Ошибка загрузки товаров')
     }
@@ -53,7 +53,7 @@ export const fetchCategories = createAsyncThunk(
     try {
       if (USE_MOCK) return CATEGORIES
       const res = await catalogApi.getCategories()
-      return res.data.map(c => ({ ...c, color: c.color_hex ?? c.color }))
+      return (res.data?.data ?? res.data).map(c => ({ ...c, color: c.color_hex ?? c.color }))
     } catch {
       return CATEGORIES
     }

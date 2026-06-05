@@ -1,11 +1,6 @@
 // Базовые URL берём из env, с фолбеком на прокси vite
-const CATALOG_BASE = import.meta.env.VITE_CATALOG_API_URL
-  ? `${import.meta.env.VITE_CATALOG_API_URL}/api/v1`
-  : '/catalog/api/v1'
-
-const ORDERS_BASE = import.meta.env.VITE_ORDERS_API_URL
-  ? `${import.meta.env.VITE_ORDERS_API_URL}/api/v1`
-  : '/orders/api/v1'
+const CATALOG_BASE = import.meta.env.VITE_CATALOG_API_URL || '/catalog/api/v1'
+const ORDERS_BASE = import.meta.env.VITE_ORDERS_API_URL || '/orders/api/v1'
 
 async function request(baseUrl, path, options = {}) {
   const { body, headers, ...rest } = options
@@ -118,8 +113,10 @@ export const ordersApi = {
    * GET /api/v1/orders/:orderNumber
    * @returns {Promise<{data: OrderDetailOut}>}
    */
-  getOrder(orderNumber) {
-    return request(ORDERS_BASE, `/orders/${encodeURIComponent(orderNumber)}`)
+  getOrder(orderNumber, sessionId) {
+    return request(ORDERS_BASE, `/orders/${encodeURIComponent(orderNumber)}`, {
+      headers: sessionId ? { 'X-Session-Id': sessionId } : {},
+    })
   },
 
   /**
