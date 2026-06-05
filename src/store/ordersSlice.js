@@ -83,10 +83,17 @@ export const createOrder = createAsyncThunk(
         }
 
         const payload = {
+          // Данные покупателя (обязательные поля бэкенда)
+          first_name:      form.first_name,
+          last_name:       form.last_name,
+          email:           form.email,
+          phone:           form.phone || undefined,
+          // Доставка
           delivery_type:   form.delivery_type,
           delivery_city:   form.delivery_type !== 'pickup' ? form.city    : undefined,
           delivery_street: form.delivery_type !== 'pickup' ? form.street  : undefined,
           delivery_zip:    form.zip   || undefined,
+          // Оплата
           payment_method:  form.payment_method,
           promo_code:      promo?.code || undefined,
         }
