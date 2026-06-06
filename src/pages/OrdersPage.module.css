@@ -61,6 +61,37 @@
 .total { font-size: 13px; color: var(--c-text-2); }
 .total strong { font-size: 15px; color: var(--c-text); margin-left: 4px; }
 
+.orderItemsBlock {
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.orderItemsTitle {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+.orderItemsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.orderItemsListItem {
+  font-size: 13px;
+  color: var(--c-text-2);
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.orderItemsEmpty {
+  font-size: 13px;
+  color: #a0998a;
+}
+
 .repeatBtn {
   font-size: 12px; font-weight: 600; color: var(--c-accent);
   text-decoration: none; padding: 6px 14px;

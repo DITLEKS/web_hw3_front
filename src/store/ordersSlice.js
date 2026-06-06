@@ -12,21 +12,42 @@ export const fetchOrders = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     if (USE_MOCK) return []
     try {
-      const res  = await ordersApi.getOrders(getSessionId())
-      const list = res.data ?? res ?? []
-      // Обогащаем каждый заказ детальной информацией (позиции товаров)
-      const enriched = await Promise.all(
-        list.map(async (order) => {
-          try {
-            const detail = await ordersApi.getOrder(order.order_number, getSessionId())
-            const data   = detail.data ?? detail
-            return { ...order, items: data.items ?? [] }
-          } catch {
-            return order
-          }
-        })
-      )
-      return enriched
+      const email = localStorage.getItem('slx_customer_email')
+      if (!email) return []
+      const sessionId = getSessionId()
+      const res = await ordersApi.getOrders(sessionId, email)
+      return res.data?.data ?? res.data ?? res ?? []
+    } catch (e) {
+      return rejectWithValue(e.message)
+    }
+  }
+)
+
+export const fetchOrderByNumber = createAsyncThunk(
+  'orders/fetchByNumber',
+  async (orderNumber, { rejectWithValue }) => {
+    if (USE_MOCK) return null
+    try {
+      const email = localStorage.getItem('slx_customer_email')
+      const res = await ordersApi.getOrder(orderNumber, getSessionId(), email)
+      const data = res.data ?? res
+      return data
+    } catch (e) {
+      return rejectWithValue(e.message)
+    }
+  }
+)
+
+export const fetchOrderDetails = createAsyncThunk(
+  'orders/fetchDetails',
+  async (orderNumber, { rejectWithValue }) => {
+    if (USE_MOCK) return null
+    try {
+      const email = localStorage.getItem('slx_customer_email')
+      const sessionId = getSessionId()
+      const res = await ordersApi.getOrder(orderNumber, sessionId, email)
+      const data = res.data ?? res
+      return data
     } catch (e) {
       return rejectWithValue(e.message)
     }
@@ -101,9 +122,9 @@ export const createOrder = createAsyncThunk(
         orderData = res.data ?? res
         // Запрашиваем детали только что созданного заказа для получения позиций
         try {
-          const detail = await ordersApi.getOrder(orderData.order_number, getSessionId())
+          const detail = await ordersApi.getOrder(orderData.order_number, getSessionId(), form.email)
           const detailData = detail.data ?? detail
-          orderData = { ...orderData, items: detailData.items ?? [] }
+          orderData = { ...orderData, items: detailData.items ?? detailData.order_items ?? detailData.products ?? [] }
         } catch { /* не критично — используем orderData без items */ }
       }
       return {
@@ -142,8 +163,19 @@ const ordersSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, { payload }) => {
         state.loading = false
         state.lastOrder = payload
-        // Добавляем в начало списка сразу — не ждём перезагрузки
-        if (payload.raw) state.list.unshift(payload.raw)
+        if (payload.raw) {
+          state.list = [payload.raw, ...state.list]
+        }
+        try {
+          if (payload.orderNumber) {
+            localStorage.setItem('lastOrderNumber', payload.orderNumber)
+          }
+          if (payload.email) {
+            localStorage.setItem('slx_customer_email', payload.email)
+          }
+        } catch (e) {
+          // ignore storage errors
+        }
       })
       .addCase(createOrder.rejected,  (state, { payload }) => {
         state.loading = false; state.error = payload
@@ -157,6 +189,39 @@ const ordersSlice = createSlice({
         state.list = payload
       })
       .addCase(fetchOrders.rejected,  state => { state.listLoading = false })
+
+    // fetchOrderByNumber
+    builder
+      .addCase(fetchOrderByNumber.pending, state => { state.listLoading = true })
+      .addCase(fetchOrderByNumber.fulfilled, (state, { payload }) => {
+        state.listLoading = false
+        if (!payload) return
+        const idx = state.list.findIndex(o => o.order_number === payload.order_number)
+        if (idx === -1) {
+          state.list = [payload, ...state.list]
+        } else {
+          state.list[idx] = { ...state.list[idx], ...payload }
+        }
+      })
+      .addCase(fetchOrderByNumber.rejected, state => { state.listLoading = false })
+
+    // fetchOrderDetails
+    builder
+      .addCase(fetchOrderDetails.pending, state => { state.listLoading = true })
+      .addCase(fetchOrderDetails.fulfilled, (state, { payload }) => {
+        state.listLoading = false
+        if (!payload) return
+        const detail = payload.data ?? payload
+        const idx = state.list.findIndex(order => order.order_number === detail.order_number)
+        if (idx !== -1) {
+          state.list[idx] = {
+            ...state.list[idx],
+            ...detail,
+            items: detail.items ?? detail.order_items ?? detail.products ?? state.list[idx].items ?? [],
+          }
+        }
+      })
+      .addCase(fetchOrderDetails.rejected, state => { state.listLoading = false })
   },
 })
 

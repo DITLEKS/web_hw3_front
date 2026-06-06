@@ -103,8 +103,9 @@ export const ordersApi = {
    * GET /api/v1/orders
    * @returns {Promise<{data: OrderOut[]}>}
    */
-  getOrders(sessionId) {
-    return request(ORDERS_BASE, '/orders', {
+  getOrders(sessionId, email) {
+    const params = email ? `?email=${encodeURIComponent(email)}` : ''
+    return request(ORDERS_BASE, `/orders${params}`, {
       headers: sessionId ? { 'X-Session-Id': sessionId } : {},
     })
   },
@@ -113,8 +114,9 @@ export const ordersApi = {
    * GET /api/v1/orders/:orderNumber
    * @returns {Promise<{data: OrderDetailOut}>}
    */
-  getOrder(orderNumber, sessionId) {
-    return request(ORDERS_BASE, `/orders/${encodeURIComponent(orderNumber)}`, {
+  getOrder(orderNumber, sessionId, email) {
+    const params = email ? `?email=${encodeURIComponent(email)}` : ''
+    return request(ORDERS_BASE, `/orders/${encodeURIComponent(orderNumber)}${params}`, {
       headers: sessionId ? { 'X-Session-Id': sessionId } : {},
     })
   },
